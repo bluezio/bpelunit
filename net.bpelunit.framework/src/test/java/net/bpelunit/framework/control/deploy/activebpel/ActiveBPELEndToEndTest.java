@@ -36,8 +36,7 @@ public class ActiveBPELEndToEndTest {
 			DeploymentException, SpecificationException {
 		checkAssumptions();
 
-		TestTestRunner runner = new TestTestRunner(TEST_SUITE_DIR,
-				TEST_SUITE_FNAME);
+		TestTestRunner runner = new TestTestRunner(TEST_SUITE_DIR, TEST_SUITE_FNAME);
 		runner.testRun();
 		assertEquals("All test cases should pass", 4, runner.getPassed());
 	}

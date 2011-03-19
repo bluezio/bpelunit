@@ -12,6 +12,7 @@
     <put name="tacService" type="activebpel">
       <wsdl>tacService.wsdl</wsdl>
       <property name="BPRFile">tacService.bpr</property>
+      <property name="GenerateBPR">false</property>
     </put>
   </deployment>
 

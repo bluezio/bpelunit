@@ -12,6 +12,7 @@
     <put name="tacServiceInvalid" type="activebpel">
       <wsdl>tacService-invalid.wsdl</wsdl>
       <property name="BPRFile">tacService-invalid.bpr</property>
+      <property name="GenerateBPR">true</property>
     </put>
   </deployment>
 

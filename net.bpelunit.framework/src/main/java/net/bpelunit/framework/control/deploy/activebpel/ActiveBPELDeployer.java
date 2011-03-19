@@ -7,8 +7,11 @@ package net.bpelunit.framework.control.deploy.activebpel;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -17,8 +20,8 @@ import javax.xml.soap.SOAPException;
 import net.bpelunit.framework.control.ext.IBPELDeployer;
 import net.bpelunit.framework.control.ext.IBPELDeployer.IBPELDeployerCapabilities;
 import net.bpelunit.framework.control.ext.IDeployment;
-import net.bpelunit.framework.control.util.NoPersistenceConnectionManager;
 import net.bpelunit.framework.exception.DeploymentException;
+import net.bpelunit.framework.model.Partner;
 import net.bpelunit.framework.model.ProcessUnderTest;
 
 import org.apache.commons.httpclient.DefaultHttpMethodRetryHandler;
@@ -53,12 +56,16 @@ public class ActiveBPELDeployer implements IBPELDeployer {
 
 	// Strings which enclose the number of deployment errors in the summary
 	private static final String ERRCOUNT_START = "&lt;deploymentSummary numErrors=&quot;";
-	private static final String ERRCOUNT_END = "&quot";
+	private static final String ERRCOUNT_END   = "&quot";
+
+	/* By default, ActiveBPEL is assumed to be at localhost:8080 */
+	private static final int DEFAULT_ENGINE_PORT = 8080;
+	private static final String DEFAULT_ENGINE_HOST = "localhost";
+	private static final String DEFAULT_ENGINE_PROTOCOL = "http";
+
 	/* Default URLs for the deployment and administration web services */
-	static final String DEFAULT_DEPLOYMENT_URL
-		= "http://localhost:8080/active-bpel/services/DeployBPRService";
-	static final String DEFAULT_ADMIN_URL
-		= "http://localhost:8080/active-bpel/services/ActiveBpelAdmin";
+	static final String DEFAULT_DEPLOYMENT_PATH = "/active-bpel/services/DeployBPRService";
+	static final String DEFAULT_ADMIN_PATH = "/active-bpel/services/ActiveBpelAdmin";
 
 	/*
 	 * Name of the environment variable which will be used to build the
@@ -68,51 +75,87 @@ public class ActiveBPELDeployer implements IBPELDeployer {
 
 	private Logger fLogger = Logger.getLogger(getClass());
 
-	private String fResultingFile;
-
-	private File fBPRFile;
-
+	/* Options related to the BPR file */
+	private String fDeployedFile;
 	private String fDeploymentDirectory;
+	private File fDeploymentArchive;
 
-	private String fDeploymentAdminServiceURL = DEFAULT_DEPLOYMENT_URL;
-	private String fAdminServiceURL = DEFAULT_ADMIN_URL;
-
+	/* Where In The World Is ActiveBPEL? */
 	private ProcessUnderTest put;
+	private int fEnginePort = DEFAULT_ENGINE_PORT;
+	private String fEngineHost = DEFAULT_ENGINE_HOST;
+	private String fEngineProto = DEFAULT_ENGINE_PROTOCOL;
+	private String fDeploymentServicePath = DEFAULT_DEPLOYMENT_PATH;
+	private String fAdminServicePath = DEFAULT_ADMIN_PATH;
 
-	/* for unit testing */
+	/* For unit testing */
 	static int _terminatedProcessCount = 0;
 
-	@IBPELDeployerOption(testSuiteSpecific = false)
+	@IBPELDeployerOption
 	public void setBPRFile(String bprFile) {
-		this.fBPRFile = new File(bprFile);
+		this.fDeploymentArchive = new File(bprFile);
 	}
 
-	@IBPELDeployerOption
+	@IBPELDeployerOption(testSuiteSpecific = false)
 	public void setDeploymentDirectory(String deploymentDirectory) {
 		if (deploymentDirectory != null) {
 			this.fDeploymentDirectory = deploymentDirectory;
 		}
 	}
 
-	public String getDeploymentAdminServiceURL() {
-		return fDeploymentAdminServiceURL;
-	}
-
-	@IBPELDeployerOption(defaultValue = DEFAULT_DEPLOYMENT_URL)
-	public void setDeploymentAdminServiceURL(String deploymentAdminServiceURL) {
-		if (deploymentAdminServiceURL != null) {
-			this.fDeploymentAdminServiceURL = deploymentAdminServiceURL;
+	@IBPELDeployerOption(testSuiteSpecific = false, defaultValue = "" + DEFAULT_ENGINE_PORT)
+	public void setEnginePort(String port) {
+		if (port != null) {
+			setEnginePort(Integer.valueOf(port));
 		}
 	}
 
-	public String getAdministrationServiceURL() {
-		return fAdminServiceURL;
+	/* Additional version, for accessing BPELUnit programmatically. */
+	public void setEnginePort(int port) {
+		this.fEnginePort  = port;
 	}
 
-	@IBPELDeployerOption(defaultValue = DEFAULT_ADMIN_URL)
-	public void setAdministrationServiceURL(String adminServiceURL) {
+	@IBPELDeployerOption(testSuiteSpecific = false, defaultValue = DEFAULT_ENGINE_HOST)
+	public void setEngineHost(String host) {
+		if (host != null) {
+			this.fEngineHost = host;
+		}
+	}
+
+	@IBPELDeployerOption(testSuiteSpecific = false, defaultValue = DEFAULT_ENGINE_PROTOCOL)
+	public void setEngineProtocol(String proto) {
+		if (proto != null) {
+			this.fEngineProto = proto;
+		}
+	}
+
+	@IBPELDeployerOption(defaultValue = DEFAULT_DEPLOYMENT_PATH)
+	public void setDeploymentAdminServicePath(String deploymentAdminServiceURL) {
+		if (deploymentAdminServiceURL != null) {
+			this.fDeploymentServicePath = deploymentAdminServiceURL;
+		}
+	}
+
+	@IBPELDeployerOption(defaultValue = DEFAULT_ADMIN_PATH)
+	public void setAdministrationServicePath(String adminServiceURL) {
 		if (adminServiceURL != null) {
-			this.fAdminServiceURL = adminServiceURL;
+			this.fAdminServicePath = adminServiceURL;
+		}
+	}
+
+	public URL getDeploymentAdminServiceURL() throws DeploymentException {
+		try {
+			return new URL(fEngineProto, fEngineHost, fEnginePort, fDeploymentServicePath);
+		} catch (MalformedURLException e) {
+			throw new DeploymentException("Bad deployment service URL", e);
+		}
+	}
+
+	public URL getAdministrationServiceURL() throws DeploymentException {
+		try {
+			return new URL(fEngineProto, fEngineHost, fEnginePort, fAdminServicePath);
+		} catch (MalformedURLException e) {
+			throw new DeploymentException("Bad administration service URL", e);
 		}
 	}
 
@@ -127,10 +170,8 @@ public class ActiveBPELDeployer implements IBPELDeployer {
 			fDeploymentDirectory = System.getenv(DEFAULT_APPSERVER_DIR_ENVVAR)
 					+ File.separator + "bpr";
 		}
-		check(fBPRFile, "BPR File");
+		check(fDeploymentArchive, "BPR File");
 		check(fDeploymentDirectory, "deployment directory path");
-		check(fDeploymentAdminServiceURL, "deployment admin server URL");
-		check(fAdminServiceURL, "engine admin server URL");
 
 		// changed the way the archive location is obtained.
 		boolean fileReplaced = false;
@@ -138,11 +179,12 @@ public class ActiveBPELDeployer implements IBPELDeployer {
 
 		File uploadingFile = new File(archivePath);
 
-		if (!uploadingFile.exists())
+		if (!uploadingFile.exists()) {
 			throw new DeploymentException(
-					"ActiveBPEL deployer could not find BPR file " + fBPRFile);
+				"ActiveBPEL deployer could not find BPR file " + fDeploymentArchive);
+		}
 
-		File resultingFile = new File(fDeploymentDirectory, fBPRFile.getName());
+		File resultingFile = new File(fDeploymentDirectory, fDeploymentArchive.getName());
 
 		// Upload it.
 
@@ -164,7 +206,8 @@ public class ActiveBPELDeployer implements IBPELDeployer {
 						+ put);
 
 		try {
-			RequestResult result = sendRequestToActiveBPEL(fDeploymentAdminServiceURL, re);
+			RequestResult result = sendRequestToActiveBPEL(
+				getDeploymentAdminServiceURL().toExternalForm(), re);
 
 			if (result.statusCode < 200 || result.statusCode > 299 || errorsInSummary(result.responseBody)) {
 				throw new DeploymentException(
@@ -173,7 +216,7 @@ public class ActiveBPELDeployer implements IBPELDeployer {
 			}
 
 			// done.
-			fResultingFile = resultingFile.toString();
+			fDeployedFile = resultingFile.toString();
 
 		} catch (HttpException e) {
 			throw new DeploymentException(
@@ -193,11 +236,11 @@ public class ActiveBPELDeployer implements IBPELDeployer {
 	public void undeploy(String path, ProcessUnderTest deployable)
 			throws DeploymentException {
 		// undeploy may be called even if deploy was not successful
-		if (fResultingFile == null)
+		if (fDeployedFile == null)
 			return;
 
-		File bprFile = new File(fResultingFile);
-		if (fResultingFile == null)
+		File bprFile = new File(fDeployedFile);
+		if (fDeployedFile == null)
 			throw new DeploymentException("Cannot undeploy BPR for Deployable "
 					+ deployable + ": Metadata about file name not found.");
 		if (!bprFile.exists())
@@ -219,21 +262,31 @@ public class ActiveBPELDeployer implements IBPELDeployer {
 
 	public String getArchiveLocation(String pathToTest) {
 		try {
-			if (fBPRFile.isAbsolute()) {
+			if (fDeploymentArchive.isAbsolute()) {
 				// absolute paths are left as is
-				return fBPRFile.getCanonicalPath();
+				return fDeploymentArchive.getCanonicalPath();
 			} else {
 				// relative paths are resolved from the directory of the .bpts
-				return new File(pathToTest, fBPRFile.getName()).getCanonicalPath();
+				return new File(pathToTest, fDeploymentArchive.getName()).getCanonicalPath();
 			}
 		} catch (IOException e) {
 			// if the path cannot be cleaned up, just turn it into an absolute path
-			return fBPRFile.getAbsolutePath();
+			return fDeploymentArchive.getAbsolutePath();
 		}
 	}
 
 	public void setArchiveLocation(String archive) {
 		setBPRFile(archive);
+	}
+
+	public IDeployment getDeployment(ProcessUnderTest processUnderTest)
+			throws DeploymentException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public void cleanUpAfterTestCase() throws Exception {
+	    terminateAllRunningProcesses(put.getName());
 	}
 
 	private void check(Object toCheck, String description)
@@ -242,12 +295,6 @@ public class ActiveBPELDeployer implements IBPELDeployer {
 			throw new DeploymentException(
 					"ActiveBPEL deployment configuration is missing the "
 							+ description + ".");
-	}
-
-	public IDeployment getDeployment(ProcessUnderTest processUnderTest)
-			throws DeploymentException {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 	/**
@@ -296,7 +343,7 @@ public class ActiveBPELDeployer implements IBPELDeployer {
 		try {
 			ArrayList<Integer> vProcesses = new ArrayList<Integer>();
 			RequestResult listResponse = sendRequestToActiveBPEL(
-				fAdminServiceURL,
+				getAdministrationServiceURL().toExternalForm(),
 				new ProcessListRequestEntity(processName));
 
 			if (listResponse.statusCode != 200) {
@@ -331,7 +378,7 @@ public class ActiveBPELDeployer implements IBPELDeployer {
 		try {
 			++_terminatedProcessCount;
 			RequestResult response = sendRequestToActiveBPEL(
-				fAdminServiceURL,
+				getAdministrationServiceURL().toExternalForm(),
 				new TerminateProcessRequestEntity(pid));
 			if (response.statusCode != 200) {
 				throw new Exception(
@@ -366,9 +413,6 @@ public class ActiveBPELDeployer implements IBPELDeployer {
 		return errorCount > 0;
 	}
 
-    public void cleanUpAfterTestCase() throws Exception {
-        terminateAllRunningProcesses(put.getName());
-    }
 }
 
 
