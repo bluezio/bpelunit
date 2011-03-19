@@ -279,10 +279,8 @@ public class ActiveBPELDeployer implements IBPELDeployer {
 		setBPRFile(archive);
 	}
 
-	public IDeployment getDeployment(ProcessUnderTest processUnderTest)
-			throws DeploymentException {
-		// TODO Auto-generated method stub
-		return null;
+	public IDeployment getDeployment(ProcessUnderTest processUnderTest) throws DeploymentException {
+		return new ActiveBPELDeployment(processUnderTest, fDeploymentArchive);
 	}
 
 	public void cleanUpAfterTestCase() throws Exception {

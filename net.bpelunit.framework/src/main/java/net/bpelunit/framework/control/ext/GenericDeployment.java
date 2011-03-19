@@ -42,6 +42,10 @@ public abstract class GenericDeployment implements IDeployment {
 	private Map<QName, String> fServiceToWsdlMapping = new HashMap<QName, String>();
 	private String fArchive;
 
+	public GenericDeployment(ProcessUnderTest put, File archive) throws DeploymentException {
+		this(put.getPartners().entrySet().toArray(new Partner[0]), archive.getPath());
+	}
+
 	public GenericDeployment(Partner[] partners, String archive)
 			throws DeploymentException {
 		this.fPartners = partners;

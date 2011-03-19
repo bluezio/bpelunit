@@ -247,24 +247,11 @@ public class ODEDeployer implements IBPELDeployer {
 		}
 	}
 
-	public IDeployment getDeployment(ProcessUnderTest put)
-			throws DeploymentException {
-
-		IDeployment deployment;
-		Map<String, Partner> partnerList = put.getPartners();
-		Partner[] partners = new Partner[partnerList.values().size()];
-		partners = (Partner[]) (new ArrayList<Partner>(partnerList.values())
-				.toArray(partners));
-
-		if (partners != null && fArchive != null) {
-			deployment = new ODEDeployment(partners, getArchiveLocation(put
-					.getBasePath()));
-		} else {
-			throw new DeploymentException("Problem creating ODEDeployment: ",
-					null);
+	public IDeployment getDeployment(ProcessUnderTest put) throws DeploymentException {
+		if (put.getPartners() != null && fArchive != null) {
+			return new ODEDeployment(put, new File(getArchiveLocation(put.getBasePath())));
 		}
-
-		return deployment;
+		throw new DeploymentException("Problem creating ODEDeployment: ", null);
 	}
 
 	public String getArchiveLocation(String pathToTest) {

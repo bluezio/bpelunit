@@ -25,6 +25,8 @@ import net.bpelunit.framework.coverage.CoverageConstants;
 import net.bpelunit.framework.coverage.exceptions.ArchiveFileException;
 import net.bpelunit.framework.exception.DeploymentException;
 import net.bpelunit.framework.model.Partner;
+import net.bpelunit.framework.model.ProcessUnderTest;
+
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.filter.ElementFilter;
@@ -55,9 +57,8 @@ public class ODEDeployment extends GenericDeployment {
 	private Logger fLogger;
 	private String fDescriptorPath;
 
-	public ODEDeployment(Partner[] partners, String archive)
-			throws DeploymentException {
-		super(partners, archive);
+	public ODEDeployment(ProcessUnderTest put, File file) throws DeploymentException {
+		super(put, file);
 		fLogger = Logger.getLogger(getClass());
 		this.fDescriptorDocument = getDescriptorDocument();
 	}
