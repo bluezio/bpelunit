@@ -8,11 +8,16 @@ package net.bpelunit.framework.control.deploy.ode;
 
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.Map;
 
 import javax.xml.soap.SOAPException;
+
+import net.bpelunit.framework.control.ext.IBPELDeployer;
+import net.bpelunit.framework.control.ext.IBPELDeployer.IBPELDeployerCapabilities;
+import net.bpelunit.framework.control.ext.IDeployment;
+import net.bpelunit.framework.control.util.JDomHelper;
+import net.bpelunit.framework.exception.DeploymentException;
+import net.bpelunit.framework.model.ProcessUnderTest;
 
 import org.apache.commons.httpclient.DefaultHttpMethodRetryHandler;
 import org.apache.commons.httpclient.HttpClient;
@@ -22,14 +27,7 @@ import org.apache.commons.httpclient.methods.RequestEntity;
 import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.Logger;
-import net.bpelunit.framework.control.ext.IBPELDeployer;
-import net.bpelunit.framework.control.ext.IDeployment;
-import net.bpelunit.framework.control.ext.IBPELDeployer.IBPELDeployerCapabilities;
-import net.bpelunit.framework.control.util.JDomHelper;
 import net.bpelunit.framework.control.util.NoPersistenceConnectionManager;
-import net.bpelunit.framework.exception.DeploymentException;
-import net.bpelunit.framework.model.Partner;
-import net.bpelunit.framework.model.ProcessUnderTest;
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.JDOMException;
@@ -85,7 +83,7 @@ public class ODEDeployer implements IBPELDeployer {
 		 * String pathToArchive = FilenameUtils.concat(archivePath,
 		 * FilenameUtils .getFullPath(fArchive));
 		 */
-		String archivePath = getArchiveLocation(pathToTest);
+		String archivePath = getArchiveLocation(put);
 
 		if (!FilenameUtils.getName(archivePath).endsWith(".zip")) {
 			// if the deployment is a directory not a zip file
@@ -249,14 +247,15 @@ public class ODEDeployer implements IBPELDeployer {
 
 	public IDeployment getDeployment(ProcessUnderTest put) throws DeploymentException {
 		if (put.getPartners() != null && fArchive != null) {
-			return new ODEDeployment(put, new File(getArchiveLocation(put.getBasePath())));
+			return new ODEDeployment(put, new File(getArchiveLocation(put)));
 		}
 		throw new DeploymentException("Problem creating ODEDeployment: ", null);
 	}
 
-	public String getArchiveLocation(String pathToTest) {
-		String pathToArchive = FilenameUtils.concat(pathToTest, FilenameUtils
-				.getFullPath(fArchive));
+	public String getArchiveLocation(ProcessUnderTest put) {
+		final String pathToTest = put.getBasePath();
+		String pathToArchive
+			= FilenameUtils.concat(pathToTest, FilenameUtils.getFullPath(fArchive));
 		String archiveName = FilenameUtils.getName(fArchive);
 		return FilenameUtils.concat(pathToArchive, archiveName);
 	}

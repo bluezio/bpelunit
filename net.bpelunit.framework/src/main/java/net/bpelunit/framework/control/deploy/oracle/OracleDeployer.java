@@ -142,7 +142,8 @@ public class OracleDeployer implements IBPELDeployer {
 		}
 	}
 
-	public String getArchiveLocation(String pathToTest) {
+	public String getArchiveLocation(ProcessUnderTest put) {
+		final String pathToTest = put.getBasePath();
 		String pathToArchive = FilenameUtils.concat(pathToTest, FilenameUtils
 				.getFullPath(fBPELFilePath));
 		String archiveName = FilenameUtils.getName(fBPELFilePath);

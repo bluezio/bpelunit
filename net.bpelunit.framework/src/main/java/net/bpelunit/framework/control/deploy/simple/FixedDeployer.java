@@ -9,8 +9,8 @@ import java.util.Map;
 
 import net.bpelunit.framework.BPELUnitRunner;
 import net.bpelunit.framework.control.ext.IBPELDeployer;
-import net.bpelunit.framework.control.ext.IDeployment;
 import net.bpelunit.framework.control.ext.IBPELDeployer.IBPELDeployerCapabilities;
+import net.bpelunit.framework.control.ext.IDeployment;
 import net.bpelunit.framework.coverage.ICoverageMeasurementTool;
 import net.bpelunit.framework.exception.DeploymentException;
 import net.bpelunit.framework.model.ProcessUnderTest;
@@ -57,7 +57,7 @@ public class FixedDeployer implements IBPELDeployer {
 		return null;
 	}
 
-	public String getArchiveLocation(String pathToTest) {
+	public String getArchiveLocation(ProcessUnderTest put) {
 		// TODO Auto-generated method stub
 		return null;
 	}

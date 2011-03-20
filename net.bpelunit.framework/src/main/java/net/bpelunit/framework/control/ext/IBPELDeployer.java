@@ -127,18 +127,20 @@ public interface IBPELDeployer {
 	 * spot if required. Support for on-the-fly deployment archive creation
 	 * depends on the deployer used.
 	 * 
-	 * @param pathToTest
-	 *            Path to the .bpts file. Used to resolve relative paths in the
-	 *            test specification.
+	 * @param processUnderTest
+	 *            Process under test: we need it to resolve relative paths using
+	 *            the suite's base path, and to extract the port BPELUnit will be
+	 *            listening on to.
 	 * @throws DeploymentException
 	 *             The test specification does not include enough information to
 	 *             locate the archive or to create it.
 	 */
-	public String getArchiveLocation(String pathToTest) throws DeploymentException;
+	public String getArchiveLocation(ProcessUnderTest processUnderTest)
+		throws DeploymentException;
 
 	/**
-	 * Changes the path to the deployment archive. The deployment archive may
-	 * not need to exist, if the deployer has support for on-the-fly archive
+	 * Changes the path to the deployment archive manually. The deployment archive
+	 * may not need to exist, if the deployer has support for on-the-fly archive
 	 * creation.
 	 * 
 	 * @param archive

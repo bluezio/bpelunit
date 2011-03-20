@@ -115,7 +115,7 @@ public class ProcessUnderTest extends Partner {
 				 * pathToArchive, FilenameUtils.getName(fBPRFile), this);
 				 */
 				newFile = coverageTool.prepareArchiveForCoverageMeasurement(
-						fDeployer.getArchiveLocation(getBasePath()), this,
+						fDeployer.getArchiveLocation(this), this,
 						fDeployer);
 				fDeployer.setArchiveLocation(newFile);
 				archiveCopied = true;

@@ -182,7 +182,7 @@ public class ActiveBPELDeployer implements IBPELDeployer {
 		check(fDeploymentDirectory, "deployment directory path");
 
 		// changed the way the archive location is obtained.
-		String archivePath = getArchiveLocation(pathToTest);
+		String archivePath = getArchiveLocation(put);
 		File uploadingFile = new File(archivePath);
 		if (!uploadingFile.exists()) {
 			throw new DeploymentException(
@@ -259,7 +259,9 @@ public class ActiveBPELDeployer implements IBPELDeployer {
 		}
 	}
 
-	public String getArchiveLocation(String pathToTest) throws DeploymentException {
+	public String getArchiveLocation(ProcessUnderTest put) throws DeploymentException {
+		final String pathToTest = put.getBasePath();
+
 		try {
 			// If the path to the deployment archive has not been specified,
 			// derive it from the path to the BPEL file
@@ -281,7 +283,7 @@ public class ActiveBPELDeployer implements IBPELDeployer {
 					throw new DeploymentException(
 						"The .bpr file does not exist, but the .bpel file has not been set");
 				}
-				createDeploymentArchive(fBpelFile, fDeploymentArchive);
+				createDeploymentArchive(put, fBpelFile, fDeploymentArchive);
 			}
 
 			if (fDeploymentArchive.isAbsolute()) {
@@ -302,7 +304,7 @@ public class ActiveBPELDeployer implements IBPELDeployer {
 	}
 
 	public IDeployment getDeployment(ProcessUnderTest put) throws DeploymentException {
-		String sArchivePath = getArchiveLocation(put.getBasePath());
+		String sArchivePath = getArchiveLocation(put);
 		return new ActiveBPELDeployment(put, new File(sArchivePath));
 	}
 
@@ -318,9 +320,14 @@ public class ActiveBPELDeployer implements IBPELDeployer {
 		return bprBasename;
 	}
 
-	private void createDeploymentArchive(File fBpel, File fBpr) {
-		// TODO Auto-generated method stub
-		
+	private void createDeploymentArchive(ProcessUnderTest put, File fBpel, File fBpr) {
+		assert fBpel != null;
+		assert fBpr  != null;
+		assert fBpel.canRead();
+
+		ActiveBPELArchiveGenerator bprGen
+			= new ActiveBPELArchiveGenerator(put, fBpel, fBpr);
+		bprGen.generate();
 	}
 
 	private void check(Object toCheck, String description)
