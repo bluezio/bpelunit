@@ -11,7 +11,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -21,7 +20,6 @@ import net.bpelunit.framework.control.ext.IBPELDeployer;
 import net.bpelunit.framework.control.ext.IBPELDeployer.IBPELDeployerCapabilities;
 import net.bpelunit.framework.control.ext.IDeployment;
 import net.bpelunit.framework.exception.DeploymentException;
-import net.bpelunit.framework.model.Partner;
 import net.bpelunit.framework.model.ProcessUnderTest;
 
 import org.apache.commons.httpclient.DefaultHttpMethodRetryHandler;
@@ -39,7 +37,7 @@ import org.apache.log4j.Logger;
  * listening at http://localhost:8080, and deployment archives are stored at
  * $CATALINA_HOME/bpr, where $CATALINA_HOME is an environment variable that
  * needs to be set to the home directory of the application server.
- * 
+ *
  * @author Philip Mayer, Antonio Garcia-Dominguez
  */
 @IBPELDeployerCapabilities(canDeploy = true, canMeasureTestCoverage = true)
@@ -75,10 +73,16 @@ public class ActiveBPELDeployer implements IBPELDeployer {
 
 	private Logger fLogger = Logger.getLogger(getClass());
 
-	/* Options related to the BPR file */
+	// Path to the deployed BPR file
 	private String fDeployedFile;
+	// Directory where ActiveBPEL places the deployed BPRs
 	private String fDeploymentDirectory;
+	/* Original BPR, as created by the user (when specifying BPRFile)
+	   or by BPELUnit (when specifying BPELFile) */
 	private File fDeploymentArchive;
+	/* BPEL file to be used for creating the BPR file, if the BPELFile
+	   option is used. */
+	private File fBpelFile;
 
 	/* Where In The World Is ActiveBPEL? */
 	private ProcessUnderTest put;
@@ -94,6 +98,11 @@ public class ActiveBPELDeployer implements IBPELDeployer {
 	@IBPELDeployerOption
 	public void setBPRFile(String bprFile) {
 		this.fDeploymentArchive = new File(bprFile);
+	}
+
+	@IBPELDeployerOption
+	public void setBPELFile(String bpelFile) {
+		this.fBpelFile = new File(bpelFile);
 	}
 
 	@IBPELDeployerOption(testSuiteSpecific = false)
@@ -170,24 +179,18 @@ public class ActiveBPELDeployer implements IBPELDeployer {
 			fDeploymentDirectory = System.getenv(DEFAULT_APPSERVER_DIR_ENVVAR)
 					+ File.separator + "bpr";
 		}
-		check(fDeploymentArchive, "BPR File");
 		check(fDeploymentDirectory, "deployment directory path");
 
 		// changed the way the archive location is obtained.
-		boolean fileReplaced = false;
 		String archivePath = getArchiveLocation(pathToTest);
-
 		File uploadingFile = new File(archivePath);
-
 		if (!uploadingFile.exists()) {
 			throw new DeploymentException(
-				"ActiveBPEL deployer could not find BPR file " + fDeploymentArchive);
+				"ActiveBPEL deployer could not find BPR file " + uploadingFile);
 		}
-
-		File resultingFile = new File(fDeploymentDirectory, fDeploymentArchive.getName());
+		File resultingFile = new File(fDeploymentDirectory, uploadingFile.getName());
 
 		// Upload it.
-
 		RequestEntity re;
 		try {
 			re = new BPRDeployRequestEntity(uploadingFile);
@@ -201,10 +204,7 @@ public class ActiveBPELDeployer implements IBPELDeployer {
 							+ e.getMessage());
 		}
 
-		fLogger
-				.info("ActiveBPEL deployer about to send SOAP request to deploy "
-						+ put);
-
+		fLogger.info("ActiveBPEL deployer about to send SOAP request to deploy " + put);
 		try {
 			RequestResult result = sendRequestToActiveBPEL(
 				getDeploymentAdminServiceURL().toExternalForm(), re);
@@ -217,7 +217,6 @@ public class ActiveBPELDeployer implements IBPELDeployer {
 
 			// done.
 			fDeployedFile = resultingFile.toString();
-
 		} catch (HttpException e) {
 			throw new DeploymentException(
 					"Problem contacting the ActiveBPEL Server: "
@@ -227,7 +226,7 @@ public class ActiveBPELDeployer implements IBPELDeployer {
 					"Problem contacting the ActiveBPEL Server: "
 							+ e.getMessage(), e);
 		} finally {
-			if (fileReplaced && uploadingFile.exists()) {
+			if (uploadingFile.exists()) {
 				uploadingFile.delete();
 			}
 		}
@@ -260,8 +259,31 @@ public class ActiveBPELDeployer implements IBPELDeployer {
 		}
 	}
 
-	public String getArchiveLocation(String pathToTest) {
+	public String getArchiveLocation(String pathToTest) throws DeploymentException {
 		try {
+			// If the path to the deployment archive has not been specified,
+			// derive it from the path to the BPEL file
+			if (fDeploymentArchive == null) {
+				if (fBpelFile == null) {
+					throw new DeploymentException(
+						"Either the path to the .bpr file or the .bpel file needs to be set");
+				}
+
+				final String bprBasename 
+					= removeExtension(fBpelFile.getName()) + ".bpel";
+				fDeploymentArchive = new File(pathToTest, bprBasename);
+			}
+
+			// If the deployment archive does not exist or the BPEL file was specified,
+			// create the deployment archive from the BPEL file
+			if (fBpelFile != null || !fDeploymentArchive.exists()) {
+				if (fBpelFile == null) {
+					throw new DeploymentException(
+						"The .bpr file does not exist, but the .bpel file has not been set");
+				}
+				createDeploymentArchive(fBpelFile, fDeploymentArchive);
+			}
+
 			if (fDeploymentArchive.isAbsolute()) {
 				// absolute paths are left as is
 				return fDeploymentArchive.getCanonicalPath();
@@ -279,12 +301,26 @@ public class ActiveBPELDeployer implements IBPELDeployer {
 		setBPRFile(archive);
 	}
 
-	public IDeployment getDeployment(ProcessUnderTest processUnderTest) throws DeploymentException {
-		return new ActiveBPELDeployment(processUnderTest, fDeploymentArchive);
+	public IDeployment getDeployment(ProcessUnderTest put) throws DeploymentException {
+		String sArchivePath = getArchiveLocation(put.getBasePath());
+		return new ActiveBPELDeployment(put, new File(sArchivePath));
 	}
 
 	public void cleanUpAfterTestCase() throws Exception {
 	    terminateAllRunningProcesses(put.getName());
+	}
+
+	private String removeExtension(String bprBasename) {
+		final int lastDot = bprBasename.lastIndexOf('.');
+		if (lastDot != -1) {
+			bprBasename = bprBasename.substring(0, lastDot);
+		}
+		return bprBasename;
+	}
+
+	private void createDeploymentArchive(File fBpel, File fBpr) {
+		// TODO Auto-generated method stub
+		
 	}
 
 	private void check(Object toCheck, String description)

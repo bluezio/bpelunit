@@ -9,7 +9,6 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.io.FileUtils;
 import net.bpelunit.framework.BPELUnitRunner;
 import net.bpelunit.framework.base.BPELUnitBaseRunner;
 import net.bpelunit.framework.control.result.ITestResultListener;
@@ -19,6 +18,8 @@ import net.bpelunit.framework.exception.SpecificationException;
 import net.bpelunit.framework.model.test.TestCase;
 import net.bpelunit.framework.model.test.TestSuite;
 import net.bpelunit.framework.model.test.report.ITestArtefact;
+
+import org.apache.commons.io.FileUtils;
 
 /**
  * 
@@ -30,9 +31,9 @@ import net.bpelunit.framework.model.test.report.ITestArtefact;
  */
 public class TestTestRunner extends BPELUnitBaseRunner implements ITestResultListener {
 
-	private int fProblems;
+	private int fProblems = 0;
 
-	private int fPassed;
+	private int fPassed = 0;
 
 	private TestSuite fSuite;
 
@@ -41,22 +42,27 @@ public class TestTestRunner extends BPELUnitBaseRunner implements ITestResultLis
 		setHomeDirectory(FileUtils.toFile(BPELUnitBaseRunner.class.getClass().getResource("/")).getAbsolutePath());
 	}
 
-	public TestTestRunner(File fBPTS) throws ConfigurationException, SpecificationException {
+	public TestTestRunner(File fBPTS, Map<String, String> options) throws ConfigurationException, SpecificationException {
 		super();
-		fProblems= 0;
-		fPassed= 0;
 
-		Map<String, String> options= new HashMap<String, String>();
 		options.put(BPELUnitRunner.SKIP_UNKNOWN_EXTENSIONS, "true");
 		options.put(BPELUnitRunner.GLOBAL_TIMEOUT, "10000");
-		initialize(options);
 
+		initialize(options);
 		fSuite = loadTestSuite(fBPTS);
 		fSuite.addResultListener(this);
 	}
 
+	public TestTestRunner(File fBPTS) throws ConfigurationException, SpecificationException {
+		this(fBPTS, new HashMap<String, String>());
+	}
+
 	public TestTestRunner(String path, String bpts) throws ConfigurationException, SpecificationException {
 		this(new File(path, bpts));
+	}
+
+	public TestTestRunner(String path, String bpts, Map<String, String> options) throws ConfigurationException, SpecificationException {
+		this(new File(path, bpts), options);
 	}
 
 	public void testRun() throws DeploymentException {

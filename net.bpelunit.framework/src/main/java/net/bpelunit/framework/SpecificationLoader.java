@@ -197,7 +197,6 @@ public class SpecificationLoader {
 		/*
 		 * The Process Under Test and his Deployer.
 		 */
-
 		XMLPUTDeploymentInformation xmlPut = xmlDeployment.getPut();
 		if (xmlPut == null)
 			throw new SpecificationException(

@@ -27,7 +27,7 @@ public class ActiveBPELDeployment extends GenericDeployment {
 
 	public ActiveBPELDeployment(ProcessUnderTest processUnderTest, File fDeploymentArchive) throws DeploymentException {
 		super(
-			processUnderTest.getPartners().entrySet().toArray(new Partner[0]),
+			processUnderTest.getPartners().values().toArray(new Partner[0]),
 			fDeploymentArchive.getPath());
 	}
 

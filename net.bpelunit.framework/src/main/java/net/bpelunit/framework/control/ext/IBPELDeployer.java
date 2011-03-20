@@ -121,9 +121,29 @@ public interface IBPELDeployer {
 	 */
 	public IDeployment getDeployment(ProcessUnderTest processUnderTest)
 			throws DeploymentException;
-	
-	public String getArchiveLocation(String pathToTest);
-	
+
+	/**
+	 * Returns the path to the deployment archive, which may be created on the
+	 * spot if required. Support for on-the-fly deployment archive creation
+	 * depends on the deployer used.
+	 * 
+	 * @param pathToTest
+	 *            Path to the .bpts file. Used to resolve relative paths in the
+	 *            test specification.
+	 * @throws DeploymentException
+	 *             The test specification does not include enough information to
+	 *             locate the archive or to create it.
+	 */
+	public String getArchiveLocation(String pathToTest) throws DeploymentException;
+
+	/**
+	 * Changes the path to the deployment archive. The deployment archive may
+	 * not need to exist, if the deployer has support for on-the-fly archive
+	 * creation.
+	 * 
+	 * @param archive
+	 *            New path to the deployment archive.
+	 */
 	public void setArchiveLocation(String archive);
 
 	/**

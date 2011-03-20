@@ -8,12 +8,16 @@ import static org.junit.Assume.assumeTrue;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
-import org.apache.commons.io.FileUtils;
+import net.bpelunit.framework.BPELUnitRunner;
 import net.bpelunit.framework.exception.ConfigurationException;
 import net.bpelunit.framework.exception.DeploymentException;
 import net.bpelunit.framework.exception.SpecificationException;
 import net.bpelunit.test.util.TestTestRunner;
+
+import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 
 /**
@@ -72,7 +76,9 @@ public class ActiveBPELEndToEndTest {
 			DeploymentException, SpecificationException {
 		checkAssumptions();
 
-		TestTestRunner runner = new TestTestRunner(TEST_SUITE_DIR, TEST_SUITE_ENDLESS_FNAME);
+		Map<String, String> extraOptions = new HashMap<String, String>();
+		extraOptions.put(BPELUnitRunner.CHANGE_ENDPOINTS, "true");
+		TestTestRunner runner = new TestTestRunner(TEST_SUITE_DIR, TEST_SUITE_ENDLESS_FNAME, extraOptions);
 		runner.testRun();
 		assertEquals("Only the case with empty input passed",
 				1, runner.getPassed());
