@@ -18,6 +18,7 @@ import javax.xml.soap.SOAPMessage;
 
 import net.bpelunit.framework.control.ext.IHeaderProcessor;
 import net.bpelunit.framework.control.ext.SendPackage;
+import net.bpelunit.framework.control.util.BPELUnitConstants;
 import net.bpelunit.framework.exception.HeaderProcessingException;
 import net.bpelunit.framework.model.test.activity.ActivityContext;
 

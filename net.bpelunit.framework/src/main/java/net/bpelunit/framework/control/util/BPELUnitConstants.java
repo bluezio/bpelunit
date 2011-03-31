@@ -83,4 +83,22 @@ public class BPELUnitConstants {
 	 * SOAP Fault Description for BPELUnit framework generazted faults
 	 */
 	public static final String SOAP_FAULT_DESCRIPTION= "BPELUnit Framework Generated Fault";
+
+	public static final String WSBPEL2_PREFIX = "bpel2";
+
+	public static final String WSBPEL2_NAMESPACE = "http://docs.oasis-open.org/wsbpel/2.0/process/executable";
+
+	public static final String WSDL_PREFIX = "wsdl";
+
+	public static final String WSDL_NAMESPACE = "http://schemas.xmlsoap.org/wsdl/";
+
+	public static final String XML_SCHEMA_PREFIX = "xsd";
+
+	public static final String XML_SCHEMA_NAMESPACE = "http://www.w3.org/2001/XMLSchema";
+
+	public static final String WSBPEL2_PLT_PREFIX = "plnk";
+
+	public static final String WSBPEL2_PLT_NAMESPACE = "http://docs.oasis-open.org/wsbpel/2.0/plnktype";
+
+	public static final String WSA_NAMESPACE= "http://schemas.xmlsoap.org/ws/2003/03/addressing";
 }

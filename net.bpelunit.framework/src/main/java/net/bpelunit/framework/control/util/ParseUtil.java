@@ -15,12 +15,15 @@ import javax.wsdl.Definition;
 import javax.wsdl.WSDLException;
 import javax.wsdl.factory.WSDLFactory;
 import javax.wsdl.xml.WSDLReader;
+import javax.xml.XMLConstants;
+import javax.xml.namespace.QName;
 
 import org.jdom.Document;
 import org.jdom.JDOMException;
 import org.jdom.input.SAXBuilder;
 import org.jdom.output.Format;
 import org.jdom.output.XMLOutputter;
+import org.w3c.dom.Node;
 import org.xml.sax.InputSource;
 
 import de.schlichtherle.io.File;
@@ -200,4 +203,34 @@ public class ParseUtil {
 			}
 		}
 	}
+
+	/**
+	 * Produces a QName from a string. Takes the raw string in
+	 * <code>sName</code> in the raw prefix:localPart or localPart format and
+	 * maps the prefix to a namespace URI, according to the namespace
+	 * definitions available from <code>node</code>.
+	 * 
+	 * @param sName
+	 *            Raw "prefix:localPart" or "localPart" string to be converted.
+	 * @param node
+	 *            Node in the DOM tree to use as context.
+	 * @return The string interpreted as a QName, or <code>null</code> if the
+	 *         string was <code>null</code>.
+	 */
+	public static QName stringToQName(final String sName, final Node node) {
+		if (sName == null) {
+			return null;
+		}
+
+		String namespace = XMLConstants.NULL_NS_URI;
+		String localpart = sName;
+		final int colon = sName.indexOf(':');
+		if (colon != -1) {
+			final String prefix = sName.substring(0, colon);
+			namespace = node.lookupNamespaceURI(prefix);
+			localpart = sName.substring(colon+1, sName.length());
+		}
+		return new QName(namespace, localpart);
+	}
+
 }

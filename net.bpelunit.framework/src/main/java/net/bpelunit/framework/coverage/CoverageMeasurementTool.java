@@ -9,6 +9,7 @@ import org.apache.log4j.Logger;
 import net.bpelunit.framework.control.ext.IBPELDeployer;
 import net.bpelunit.framework.control.ext.IDeployment;
 import net.bpelunit.framework.control.ext.ISOAPEncoder;
+import net.bpelunit.framework.control.util.BPELUnitConstants;
 import net.bpelunit.framework.control.util.ParseUtil;
 import net.bpelunit.framework.coverage.annotation.Instrumenter;
 import net.bpelunit.framework.coverage.annotation.MetricsManager;
@@ -219,7 +220,7 @@ public class CoverageMeasurementTool implements ICoverageMeasurementTool {
 
 	private void addImports(Document doc) {
 		Element process = doc.getRootElement();
-		Element importElem = new Element("import", CoverageConstants.BPEL_NS);
+		Element importElem = new Element("import", BPELUnitConstants.WSBPEL2_NAMESPACE);
 		importElem.setAttribute("namespace",
 				CoverageConstants.COVERAGETOOL_NAMESPACE.getURI());
 		importElem.setAttribute("location",

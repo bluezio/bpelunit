@@ -81,8 +81,8 @@ public abstract class GenericDeployment implements IDeployment {
 		String simulatedURL = p.getSimulatedURL();
 
 		// get the service QName and port from the PartnerLink
-		QName partnerService = pl.getService();
-		String partnerPort = pl.getPort();
+		QName partnerService = pl.getServiceQName();
+		String partnerPort = pl.getPortName();
 
 		// get the the path of the WSDL which is defining the corresponding
 		// service from the service name to WSDL path mapping

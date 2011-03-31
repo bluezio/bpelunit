@@ -12,7 +12,7 @@
     <put name="tacServiceEndless" type="activebpel">
       <wsdl>tacService-endless.wsdl</wsdl>
       <property name="BPRFile">tacService-endless.bpr</property>
-      <property name="GenerateBPR">true</property>
+      <property name="BPELFile">tacService-endless.bpel</property>
     </put>
   </deployment>
 

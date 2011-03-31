@@ -83,6 +83,9 @@ public class ActiveBPELDeployer implements IBPELDeployer {
 	/* BPEL file to be used for creating the BPR file, if the BPELFile
 	   option is used. */
 	private File fBpelFile;
+	/* Indicate whether the BPR has been already generated or not,
+	 * in case we are generating it automatically. */
+	private boolean fDeploymentArchiveIsGenerated = false;
 
 	/* Where In The World Is ActiveBPEL? */
 	private ProcessUnderTest put;
@@ -260,11 +263,30 @@ public class ActiveBPELDeployer implements IBPELDeployer {
 	}
 
 	public String getArchiveLocation(ProcessUnderTest put) throws DeploymentException {
-		final String pathToTest = put.getBasePath();
+		if (this.fDeploymentArchiveIsGenerated) {
+			try {
+				return fDeploymentArchive.getCanonicalPath();
+			} catch (IOException e) {
+				throw new DeploymentException(
+					"Could not compute the canonical path for the BPR file", e);
+			}
+		}
 
 		try {
+			final String pathToTest = put.getBasePath();
+
+			// If fBpelFile or fDeploymentArchive have relative paths, convert them
+			// to absolute paths taking the directory of the .bpts file as reference
+			if (fBpelFile != null && !fBpelFile.isAbsolute()) {
+				fBpelFile = new File(pathToTest, fBpelFile.getPath());
+			}
+			if (fDeploymentArchive != null && !fDeploymentArchive.isAbsolute()) {
+				fDeploymentArchive = new File(pathToTest, fDeploymentArchive.getPath());
+			}
+
 			// If the path to the deployment archive has not been specified,
-			// derive it from the path to the BPEL file
+			// derive it from the directory of the .bpts file and the name
+			// of the BPEL file, replacing the .bpel extension by .bpr.
 			if (fDeploymentArchive == null) {
 				if (fBpelFile == null) {
 					throw new DeploymentException(
@@ -272,7 +294,7 @@ public class ActiveBPELDeployer implements IBPELDeployer {
 				}
 
 				final String bprBasename 
-					= removeExtension(fBpelFile.getName()) + ".bpel";
+					= removeExtension(fBpelFile.getName()) + ".bpr";
 				fDeploymentArchive = new File(pathToTest, bprBasename);
 			}
 
@@ -284,6 +306,7 @@ public class ActiveBPELDeployer implements IBPELDeployer {
 						"The .bpr file does not exist, but the .bpel file has not been set");
 				}
 				createDeploymentArchive(put, fBpelFile, fDeploymentArchive);
+				fDeploymentArchiveIsGenerated = true;
 			}
 
 			if (fDeploymentArchive.isAbsolute()) {
@@ -320,7 +343,7 @@ public class ActiveBPELDeployer implements IBPELDeployer {
 		return bprBasename;
 	}
 
-	private void createDeploymentArchive(ProcessUnderTest put, File fBpel, File fBpr) {
+	private void createDeploymentArchive(ProcessUnderTest put, File fBpel, File fBpr) throws DeploymentException {
 		assert fBpel != null;
 		assert fBpr  != null;
 		assert fBpel.canRead();

@@ -20,8 +20,6 @@ public class CoverageConstants {
 
 	public static final String PARTNERLINK_NAMESPACE = "http://schemas.xmlsoap.org/ws/2003/03/addressing";
 
-	public static final String BPEL_NS = "http://docs.oasis-open.org/wsbpel/2.0/process/executable";
-
 	public static final String WSDL_IMPORT_TYPE = "http://schemas.xmlsoap.org/wsdl/";
 
 	public static final Namespace COVERAGETOOL_NAMESPACE = Namespace
