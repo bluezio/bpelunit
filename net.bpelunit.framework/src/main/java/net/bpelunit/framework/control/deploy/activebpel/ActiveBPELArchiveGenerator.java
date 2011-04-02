@@ -408,8 +408,12 @@ class ActiveBPELArchiveGenerator {
 				}
 
 				PartnerLinkType plt = (PartnerLinkType)o;
-				if (type.equals(plt.getName())) {
-					break;
+				QName pltQName = plt.getName();
+				if (XMLConstants.NULL_NS_URI.equals(pltQName.getNamespaceURI())) {
+					pltQName = new QName(def.getTargetNamespace(), pltQName.getLocalPart());
+				}
+				if (type.equals(pltQName)) {
+					return plt;
 				}
 			}
 		}
