@@ -5,6 +5,7 @@
 package net.bpelunit.framework.control.deploy.activebpel;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -15,6 +16,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import javax.wsdl.Binding;
 import javax.wsdl.Definition;
@@ -114,6 +117,8 @@ class ActiveBPELArchiveGenerator {
 			writeCatalogXML();
 			LOGGER.debug("Writing process.pdd");
 			writeProcessDescriptor();
+			LOGGER.debug("Packing BPR " + fBprFile.getName());
+			packBPR();
 		}
 		catch (DeploymentException e) {
 			throw e;
@@ -276,6 +281,23 @@ class ActiveBPELArchiveGenerator {
 		LOGGER.debug("process.pdd was successfully created in " + fProcessDescriptor.getCanonicalPath());
 	}
 
+	private void packBPR() throws IOException {
+		ZipOutputStream zipOS = new ZipOutputStream(new FileOutputStream(fBprFile));
+
+		for (File wsdlFile : fParsedWsdlFiles.keySet()) {
+			addFileToZip(zipOS, wsdlFile, "wsdl/" + wsdlFile.getName());
+		}
+		for (File fichXSD : fXsdFiles) {
+			addFileToZip(zipOS, fichXSD, "wsdl/" + fichXSD.getName());
+		}
+		addFileToZip(zipOS, fProcessDescriptor, "process.pdd");
+		addFileToZip(zipOS, fProcessDescriptor, "META-INF/catalog.xml");
+		addFileToZip(zipOS, fBpelFile, "bpel/" + fBpelFile.getName());
+
+		zipOS.flush();
+		zipOS.close();
+	}
+
 	/**
 	 * Note: this includes <b>all</b> partner links, including those provided
 	 * by the WS-BPEL process itself. To filter those to be provided by BPELUnit,
@@ -426,6 +448,31 @@ class ActiveBPELArchiveGenerator {
 	{
 		Transformer idTransformer = TransformerFactory.newInstance().newTransformer();
 		idTransformer.transform(new DOMSource(doc), new StreamResult(new FileOutputStream(destFile)));
+	}
+
+	/**
+	 * Adds the file passed as an argument to the zip file
+	 *
+	 * @param zipOS
+	 *            The destination ZIP file
+	 * @param file
+	 *            The source file
+	 * @param entryName
+	 *            Name for the entry in the ZIP file
+	 * @throws IOException
+	 *             It is thrown if the source file can not be opened
+	 */
+	protected void addFileToZip(ZipOutputStream zipOS, File file, String entryName) throws IOException {
+		zipOS.putNextEntry(new ZipEntry(entryName));
+
+		byte[] buf = new byte[2048];
+		FileInputStream is = new FileInputStream(file);
+		int readBytes = -1;
+		while ((readBytes = is.read(buf)) != -1) {
+			zipOS.write(buf, 0, readBytes);
+		}
+
+		zipOS.closeEntry();
 	}
 
 	private static synchronized XPathTool getXPathTool() {
