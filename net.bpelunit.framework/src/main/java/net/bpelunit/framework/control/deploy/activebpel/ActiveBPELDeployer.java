@@ -155,20 +155,56 @@ public class ActiveBPELDeployer implements IBPELDeployer {
 		}
 	}
 
-	public URL getDeploymentAdminServiceURL() throws DeploymentException {
+	public String getDeploymentAdminServiceURL() throws DeploymentException {
 		try {
-			return new URL(fEngineProto, fEngineHost, fEnginePort, fDeploymentServicePath);
+			return new URL(fEngineProto, fEngineHost, fEnginePort, fDeploymentServicePath).toExternalForm();
 		} catch (MalformedURLException e) {
 			throw new DeploymentException("Bad deployment service URL", e);
 		}
 	}
 
-	public URL getAdministrationServiceURL() throws DeploymentException {
+	/**
+	 * Changes the URL to be used to access the deployment service. This method
+	 * is deprecated and will be eventually removed: please use the separate
+	 * {@link #setEngineHost(String)}, {@link #setEnginePort(int)},
+	 * {@link #setEngineProtocol(String)} and
+	 * {@link #setDeploymentAdminServicePath(String)} methods instead. The
+	 * administration and deployment services are assumed to run on the same
+	 * host, port and protocol.
+	 */
+	@Deprecated
+	public void setDeploymentAdminServiceURL(String sURL) throws MalformedURLException {
+		URL url = new URL(sURL);
+		this.setEngineHost(url.getHost());
+		this.setEnginePort(url.getPort());
+		this.setEngineProtocol(url.getProtocol());
+		this.setDeploymentAdminServicePath(url.getPath());
+	}
+
+	public String getAdministrationServiceURL() throws DeploymentException {
 		try {
-			return new URL(fEngineProto, fEngineHost, fEnginePort, fAdminServicePath);
+			return new URL(fEngineProto, fEngineHost, fEnginePort, fAdminServicePath).toExternalForm();
 		} catch (MalformedURLException e) {
 			throw new DeploymentException("Bad administration service URL", e);
 		}
+	}
+
+	/**
+	 * Changes the URL to be used to access the admin service. This method is
+	 * deprecated and will be eventually removed: please use the separate
+	 * {@link #setEngineHost(String)}, {@link #setEnginePort(int)},
+	 * {@link #setEngineProtocol(String)} and
+	 * {@link #setAdministrationServicePath(String)} methods instead. The
+	 * administration and deployment services are assumed to run on the same
+	 * host, port and protocol.
+	 */
+	@Deprecated
+	public void setAdministrationServiceURL(String sURL) throws MalformedURLException {
+		URL url = new URL(sURL);
+		setEngineHost(url.getHost());
+		setEnginePort(url.getPort());
+		setEngineProtocol(url.getProtocol());
+		setAdministrationServicePath(url.getPath());
 	}
 
 	public void deploy(String pathToTest, ProcessUnderTest put)
@@ -210,7 +246,7 @@ public class ActiveBPELDeployer implements IBPELDeployer {
 		fLogger.info("ActiveBPEL deployer about to send SOAP request to deploy " + put);
 		try {
 			RequestResult result = sendRequestToActiveBPEL(
-				getDeploymentAdminServiceURL().toExternalForm(), re);
+				getDeploymentAdminServiceURL(), re);
 
 			if (result.statusCode < 200 || result.statusCode > 299 || errorsInSummary(result.responseBody)) {
 				throw new DeploymentException(
@@ -407,7 +443,7 @@ public class ActiveBPELDeployer implements IBPELDeployer {
 		try {
 			ArrayList<Integer> vProcesses = new ArrayList<Integer>();
 			RequestResult listResponse = sendRequestToActiveBPEL(
-				getAdministrationServiceURL().toExternalForm(),
+				getAdministrationServiceURL(),
 				new ProcessListRequestEntity(processName));
 
 			if (listResponse.statusCode != 200) {
@@ -442,7 +478,7 @@ public class ActiveBPELDeployer implements IBPELDeployer {
 		try {
 			++_terminatedProcessCount;
 			RequestResult response = sendRequestToActiveBPEL(
-				getAdministrationServiceURL().toExternalForm(),
+				getAdministrationServiceURL(),
 				new TerminateProcessRequestEntity(pid));
 			if (response.statusCode != 200) {
 				throw new Exception(
