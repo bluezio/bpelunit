@@ -304,7 +304,7 @@ class ActiveBPELArchiveGenerator {
 	 * test if {@link PartnerLink#getPartnerRole()} returns a non-<code>null</code>
 	 * value.
 	 */
-	private Collection<PartnerLink> getPartnerLinks(Document bpelDoc) throws XPathExpressionException, DOMException, DeploymentException {
+	protected Collection<PartnerLink> getPartnerLinks(Document bpelDoc) throws XPathExpressionException, DOMException, DeploymentException {
 		// Query the WS-BPEL composition for partner links
 		final ArrayList<PartnerLink> lPartnerLinks = new ArrayList<PartnerLink>();
 
@@ -343,7 +343,7 @@ class ActiveBPELArchiveGenerator {
 	 * Tries to find out as much information as possible about the resulting
 	 * partner link.
 	 */
-	private PartnerLink computeFullPartnerLink(
+	protected PartnerLink computeFullPartnerLink(
 			String roleName, QName portTypeName)
 		throws DeploymentException
 	{
@@ -356,7 +356,7 @@ class ActiveBPELArchiveGenerator {
 		return partnerLink;
 	}
 
-	private Pair<Service, Port> findService(PortType portType) throws DeploymentException {
+	protected Pair<Service, Port> findService(PortType portType) throws DeploymentException {
 		// Look for the bindings with the provided port type
 		List<Binding> lBindings = new ArrayList<Binding>();
 		for (Definition def : fParsedWsdlFiles.values()) {
@@ -426,14 +426,14 @@ class ActiveBPELArchiveGenerator {
 		return myRole;
 	}
 
-	private QName getProcessQName() throws XPathExpressionException {
+	protected QName getProcessQName() throws XPathExpressionException {
 		Document bpelDoc = fParsedBpelFiles.get(fBpelFile);
 		final Element procElem = bpelDoc.getDocumentElement();
 		final String rawName = procElem.getAttribute("name");
 		return ParseUtil.stringToQName(rawName, procElem);
 	}
 
-	private String getWsdlNamespace(File wsdl) throws WSDLException, DeploymentException {
+	protected String getWsdlNamespace(File wsdl) throws WSDLException, DeploymentException {
 		if (fParsedWsdlFiles.containsKey(wsdl)) {
 			return fParsedWsdlFiles.get(wsdl).getTargetNamespace(); 
 		}
@@ -443,7 +443,7 @@ class ActiveBPELArchiveGenerator {
 	/**
 	 * Dumps a DOM document into a file, using an identity XSLT transform.
 	 */
-	private void dumpXML(Document doc, File destFile)
+	protected void dumpXML(Document doc, File destFile)
 		throws TransformerFactoryConfigurationError, FileNotFoundException, TransformerException
 	{
 		Transformer idTransformer = TransformerFactory.newInstance().newTransformer();
