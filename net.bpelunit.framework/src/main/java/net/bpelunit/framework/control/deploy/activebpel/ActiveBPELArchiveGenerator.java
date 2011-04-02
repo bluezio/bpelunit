@@ -119,6 +119,7 @@ class ActiveBPELArchiveGenerator {
 			writeProcessDescriptor();
 			LOGGER.debug("Packing BPR " + fBprFile.getName());
 			packBPR();
+			LOGGER.debug("Packed BPR " + fBprFile.getName());
 		}
 		catch (DeploymentException e) {
 			throw e;

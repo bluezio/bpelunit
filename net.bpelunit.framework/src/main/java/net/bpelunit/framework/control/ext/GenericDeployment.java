@@ -21,14 +21,18 @@ import net.bpelunit.framework.exception.DeploymentException;
 import net.bpelunit.framework.exception.EndPointException;
 import net.bpelunit.framework.model.Partner;
 import net.bpelunit.framework.model.ProcessUnderTest;
+
 import org.jdom.Document;
 import org.jdom.Element;
 import org.jdom.filter.ElementFilter;
 import org.jdom.output.Format;
 import org.jdom.output.XMLOutputter;
 
+import de.schlichtherle.io.ArchiveDetector;
+import de.schlichtherle.io.DefaultArchiveDetector;
 import de.schlichtherle.io.File;
 import de.schlichtherle.io.FileWriter;
+import de.schlichtherle.io.archive.zip.ZipDriver;
 
 public abstract class GenericDeployment implements IDeployment {
 
@@ -41,6 +45,15 @@ public abstract class GenericDeployment implements IDeployment {
 	private Partner fPut;
 	private Map<QName, String> fServiceToWsdlMapping = new HashMap<QName, String>();
 	private String fArchive;
+
+	static {
+		// Ensure TrueZIP sees the ActiveBPEL .bpr files as ZIPs
+		File.setDefaultArchiveDetector(
+			new DefaultArchiveDetector(ArchiveDetector.DEFAULT,
+			new Object[]{
+				"bpr", new ZipDriver()
+			}));
+	}
 
 	public GenericDeployment(ProcessUnderTest put, File archive) throws DeploymentException {
 		this(put.getPartners().entrySet().toArray(new Partner[0]), archive.getPath());
