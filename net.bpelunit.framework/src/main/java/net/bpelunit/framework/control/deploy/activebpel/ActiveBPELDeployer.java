@@ -83,9 +83,6 @@ public class ActiveBPELDeployer implements IBPELDeployer {
 	/* BPEL file to be used for creating the BPR file, if the BPELFile
 	   option is used. */
 	private File fBpelFile;
-	/* Indicate whether the BPR has been already generated or not,
-	 * in case we are generating it automatically. */
-	private boolean fDeploymentArchiveIsGenerated = false;
 
 	/* Where In The World Is ActiveBPEL? */
 	private ProcessUnderTest put;
@@ -264,10 +261,6 @@ public class ActiveBPELDeployer implements IBPELDeployer {
 			throw new DeploymentException(
 					"Problem contacting the ActiveBPEL Server: "
 							+ e.getMessage(), e);
-		} finally {
-			if (uploadingFile.exists()) {
-				uploadingFile.delete();
-			}
 		}
 	}
 
@@ -299,15 +292,6 @@ public class ActiveBPELDeployer implements IBPELDeployer {
 	}
 
 	public String getArchiveLocation(ProcessUnderTest put) throws DeploymentException {
-		if (this.fDeploymentArchiveIsGenerated) {
-			try {
-				return fDeploymentArchive.getCanonicalPath();
-			} catch (IOException e) {
-				throw new DeploymentException(
-					"Could not compute the canonical path for the BPR file", e);
-			}
-		}
-
 		try {
 			final String pathToTest = put.getBasePath();
 
@@ -342,16 +326,10 @@ public class ActiveBPELDeployer implements IBPELDeployer {
 						"The .bpr file does not exist, but the .bpel file has not been set");
 				}
 				createDeploymentArchive(put, fBpelFile, fDeploymentArchive);
-				fDeploymentArchiveIsGenerated = true;
+				fDeploymentArchive.deleteOnExit();
 			}
 
-			if (fDeploymentArchive.isAbsolute()) {
-				// absolute paths are left as is
-				return fDeploymentArchive.getCanonicalPath();
-			} else {
-				// relative paths are resolved from the directory of the .bpts
-				return new File(pathToTest, fDeploymentArchive.getName()).getCanonicalPath();
-			}
+			return fDeploymentArchive.getCanonicalPath();
 		} catch (IOException e) {
 			// if the path cannot be cleaned up, just turn it into an absolute path
 			return fDeploymentArchive.getAbsolutePath();
