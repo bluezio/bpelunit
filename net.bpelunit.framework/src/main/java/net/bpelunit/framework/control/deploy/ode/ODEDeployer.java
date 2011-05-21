@@ -248,7 +248,7 @@ public class ODEDeployer implements IBPELDeployer {
 
 	public IDeployment getDeployment(ProcessUnderTest put) throws DeploymentException {
 		if (put.getPartners() != null && fArchive != null) {
-			return new ODEDeployment(put, new File(getArchiveLocation(put)));
+			return new ODEDeployment(put, getArchiveLocation(put));
 		}
 		throw new DeploymentException("Problem creating ODEDeployment: ", null);
 	}

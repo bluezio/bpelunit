@@ -6,10 +6,20 @@
 
 package net.bpelunit.framework.control.ext;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipException;
+import java.util.zip.ZipFile;
 
 import javax.wsdl.Definition;
 import javax.wsdl.Service;
@@ -28,12 +38,6 @@ import org.jdom.filter.ElementFilter;
 import org.jdom.output.Format;
 import org.jdom.output.XMLOutputter;
 
-import de.schlichtherle.io.ArchiveDetector;
-import de.schlichtherle.io.DefaultArchiveDetector;
-import de.schlichtherle.io.File;
-import de.schlichtherle.io.FileWriter;
-import de.schlichtherle.io.archive.zip.ZipDriver;
-
 public abstract class GenericDeployment implements IDeployment {
 
 	private static final String SERVICE_ELEMENT = "service";
@@ -46,17 +50,8 @@ public abstract class GenericDeployment implements IDeployment {
 	private Map<QName, String> fServiceToWsdlMapping = new HashMap<QName, String>();
 	private String fArchive;
 
-	static {
-		// Ensure TrueZIP sees the ActiveBPEL .bpr files as ZIPs
-		File.setDefaultArchiveDetector(
-			new DefaultArchiveDetector(ArchiveDetector.DEFAULT,
-			new Object[]{
-				"bpr", new ZipDriver()
-			}));
-	}
-
-	public GenericDeployment(ProcessUnderTest put, File archive) throws DeploymentException {
-		this(put.getPartners().entrySet().toArray(new Partner[0]), archive.getPath());
+	public GenericDeployment(ProcessUnderTest put, String path) throws DeploymentException {
+		this(put.getPartners().entrySet().toArray(new Partner[0]), path);
 	}
 
 	public GenericDeployment(Partner[] partners, String archive)
@@ -66,10 +61,66 @@ public abstract class GenericDeployment implements IDeployment {
 		this.fPut = findPUT();
 
 		try {
-			populateServiceToWsdlMapping(new File(archive));
+			populateServiceToWsdlMapping(unpackArchive(archive));
 		} catch (IOException e) {
 			throw new DeploymentException(
 					"Problem instantiating Deployment class", e);
+		}
+	}
+
+	protected File unpackArchive(String archivePath) throws ZipException, IOException {
+		final File fArchive = new File(archivePath);
+
+		// Already "unpacked": it is a directory.
+		if (fArchive.isDirectory()) {
+			return fArchive;
+		}
+
+		// We assume it is a ZIP file, as it is true for the two
+		// currently supported engines. Other engines can override
+		// this method with a different assumption.
+		final File tmpDirectory = createTemporaryDirectory(fArchive);
+
+		final ZipFile zipArchive = new ZipFile(fArchive);
+		final Enumeration<? extends ZipEntry> zipEntries = zipArchive.entries();
+		while (zipEntries.hasMoreElements()) {
+			unpackEntry(zipArchive, zipEntries.nextElement(), tmpDirectory);
+		}
+
+		return tmpDirectory;
+	}
+
+	private File createTemporaryDirectory(final File fArchive)
+			throws IOException {
+		final File tmpDirectory  = File.createTempFile(fArchive.getName(), "-unpacked");
+		tmpDirectory.delete();
+		tmpDirectory.mkdir();
+		return tmpDirectory;
+	}
+
+	private void unpackEntry(final ZipFile zipArchive, final ZipEntry entry,
+			final File baseDirectory) throws IOException, FileNotFoundException {
+		final File destFile  = new File(baseDirectory, entry.getName());
+		createDirectoryIfMissing(entry.isDirectory() ? destFile : destFile.getParentFile());
+
+		final InputStream entryIS = zipArchive.getInputStream(entry);
+		final OutputStream entryOS = new FileOutputStream(destFile);
+		try {
+			final byte[] buffer = new byte[2048];
+			int count = -1;
+			while ((count = entryIS.read(buffer)) != -1) {
+				entryOS.write(buffer, 0, count);
+			}
+		} finally {
+			entryOS.flush();
+			entryOS.close();
+			entryIS.close();
+		}
+	}
+
+	private void createDirectoryIfMissing(File dir) throws IOException {
+		if (!dir.exists() && !dir.mkdirs()) {
+			throw new IOException("Could not create the directory " + dir);
 		}
 	}
 
@@ -143,11 +194,12 @@ public abstract class GenericDeployment implements IDeployment {
 			}
 		}
 
+		// FIXME: replace file in the original archive, to be deployed,
+		// or repack everything into new archive.
 		FileWriter writer = null;
 		try {
 			writer = new FileWriter(serviceWsdl);
-			XMLOutputter xmlOutputter = new XMLOutputter(Format
-					.getPrettyFormat());
+			XMLOutputter xmlOutputter = new XMLOutputter(Format.getPrettyFormat());
 			xmlOutputter.output(document, writer);
 		} catch (IOException e) {
 			throw new EndPointException(
@@ -213,8 +265,7 @@ public abstract class GenericDeployment implements IDeployment {
 				populateServiceToWsdlMapping(file);
 			} else {
 				if (file.getName().endsWith(".wsdl")) {
-					Definition definition = ParseUtil.getWsdlDefinition(file
-							.getAbsolutePath(), true, true);
+					Definition definition = ParseUtil.getWsdlDefinition(file.getAbsolutePath(), true, true);
 					Map<QName, Service> services = getDefinitions(definition);
 
 					for (QName service : services.keySet()) {

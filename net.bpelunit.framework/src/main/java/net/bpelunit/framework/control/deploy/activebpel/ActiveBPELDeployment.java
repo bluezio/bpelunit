@@ -4,8 +4,6 @@
  */
 package net.bpelunit.framework.control.deploy.activebpel;
 
-import java.io.File;
-
 import net.bpelunit.framework.control.ext.GenericDeployment;
 import net.bpelunit.framework.control.ext.PartnerLink;
 import net.bpelunit.framework.coverage.exceptions.ArchiveFileException;
@@ -25,10 +23,8 @@ public class ActiveBPELDeployment extends GenericDeployment {
 		super(partners, archive);
 	}
 
-	public ActiveBPELDeployment(ProcessUnderTest processUnderTest, File fDeploymentArchive) throws DeploymentException {
-		super(
-			processUnderTest.getPartners().values().toArray(new Partner[0]),
-			fDeploymentArchive.getPath());
+	public ActiveBPELDeployment(ProcessUnderTest processUnderTest, String archive) throws DeploymentException {
+		this(processUnderTest.getPartners().values().toArray(new Partner[0]), archive);
 	}
 
 	@Override

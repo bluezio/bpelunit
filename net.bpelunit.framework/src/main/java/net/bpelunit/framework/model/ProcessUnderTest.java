@@ -89,8 +89,7 @@ public class ProcessUnderTest extends Partner {
 			IDeployment deployment = fDeployer.getDeployment(this);
 			PartnerLink[] partnerLinks = deployment.getPartnerLinks();
 			Partner[] partners = fPartners.values().toArray(new Partner[] {});
-			Map<Partner, PartnerLink> linkMap = getLinkMapping(partners,
-					partnerLinks);
+			Map<Partner, PartnerLink> linkMap = getLinkMapping(partners, partnerLinks);
 
 			try {
 				for (Partner p : linkMap.keySet()) {

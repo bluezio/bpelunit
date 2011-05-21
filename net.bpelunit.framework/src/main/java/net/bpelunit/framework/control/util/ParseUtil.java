@@ -139,7 +139,7 @@ public class ParseUtil {
 		} catch (WSDLException e) {
 			throw new IOException(
 					"Error while reading definition from WSDL file \""
-							+ wsdl.getAbsolutePath() + "\".", e);
+							+ wsdl.getAbsolutePath() + "\":" + e.getMessage(), e);
 		} catch (FileNotFoundException e) {
 			throw new IOException(e);
 		}

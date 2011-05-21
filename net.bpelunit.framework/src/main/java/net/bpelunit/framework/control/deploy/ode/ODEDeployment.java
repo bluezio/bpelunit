@@ -57,8 +57,8 @@ public class ODEDeployment extends GenericDeployment {
 	private Logger fLogger;
 	private String fDescriptorPath;
 
-	public ODEDeployment(ProcessUnderTest put, File file) throws DeploymentException {
-		super(put, file);
+	public ODEDeployment(ProcessUnderTest put, String archivePath) throws DeploymentException {
+		super(put, archivePath);
 		fLogger = Logger.getLogger(getClass());
 		this.fDescriptorDocument = getDescriptorDocument();
 	}

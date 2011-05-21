@@ -342,8 +342,7 @@ public class ActiveBPELDeployer implements IBPELDeployer {
 	}
 
 	public IDeployment getDeployment(ProcessUnderTest put) throws DeploymentException {
-		String sArchivePath = getArchiveLocation(put);
-		return new ActiveBPELDeployment(put, new File(sArchivePath));
+		return new ActiveBPELDeployment(put, getArchiveLocation(put));
 	}
 
 	public void cleanUpAfterTestCase() throws Exception {
