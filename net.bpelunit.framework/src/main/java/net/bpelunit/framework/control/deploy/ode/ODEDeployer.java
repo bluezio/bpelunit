@@ -16,7 +16,6 @@ import net.bpelunit.framework.control.ext.IBPELDeployer;
 import net.bpelunit.framework.control.ext.IBPELDeployer.IBPELDeployerCapabilities;
 import net.bpelunit.framework.control.ext.IDeployment;
 import net.bpelunit.framework.control.util.JDomHelper;
-import net.bpelunit.framework.control.util.NoPersistenceConnectionManager;
 import net.bpelunit.framework.exception.DeploymentException;
 import net.bpelunit.framework.model.ProcessUnderTest;
 
