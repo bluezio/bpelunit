@@ -79,6 +79,7 @@ public class FaultMetric implements IMetric {
 	/* (non-Javadoc)
 	 * @see net.bpelunit.framework.coverage.annotation.metrics.IMetric#setOriginalBPELProcess(org.jdom.Element)
 	 */
+	@SuppressWarnings("serial")
 	public void setOriginalBPELProcess(Element process) {
 		ElementFilter filter = new ElementFilter(getProcessNamespace()) {
 			@Override

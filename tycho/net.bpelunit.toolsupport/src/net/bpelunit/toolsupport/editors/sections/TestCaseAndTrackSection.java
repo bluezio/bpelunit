@@ -98,7 +98,7 @@ public class TestCaseAndTrackSection extends TreeSection {
 		public Object[] getElements(Object inputElement) {
 			if (inputElement instanceof XMLTestCasesSection) {
 				XMLTestCasesSection element = (XMLTestCasesSection) inputElement;
-				return element.getTestCaseArray();
+				return element.getTestCaseList().toArray();
 			} else
 				return EMPTY_LIST;
 		}
@@ -116,7 +116,7 @@ public class TestCaseAndTrackSection extends TreeSection {
 			if (parentElement instanceof XMLTestCase) {
 				XMLTestCase testCase = (XMLTestCase) parentElement;
 				List<XMLTrack> tracks = new ArrayList<XMLTrack>();
-				for (XMLTrack t : testCase.getPartnerTrackArray()) {
+				for (XMLTrack t : testCase.getPartnerTrackList()) {
 					tracks.add(t);
 				}
 				if (testCase.getClientTrack() != null)
@@ -129,10 +129,10 @@ public class TestCaseAndTrackSection extends TreeSection {
 		public Object getParent(Object element) {
 			if (element instanceof XMLTrack) {
 				XMLTrack track = (XMLTrack) element;
-				XMLTestCase[] testCaseList = fSection.getTestCaseArray();
+				List<XMLTestCase> testCaseList = fSection.getTestCaseList();
 				for (XMLTestCase case1 : testCaseList) {
-					XMLPartnerTrack[] partnerTrackList = case1
-							.getPartnerTrackArray();
+					List<XMLPartnerTrack> partnerTrackList = case1
+							.getPartnerTrackList();
 					for (XMLPartnerTrack track2 : partnerTrackList) {
 						if (track2.equals(track))
 							return case1;
@@ -147,7 +147,7 @@ public class TestCaseAndTrackSection extends TreeSection {
 		public boolean hasChildren(Object element) {
 			if (element instanceof XMLTestCase) {
 				XMLTestCase testCase = (XMLTestCase) element;
-				return testCase.getPartnerTrackArray().length > 0
+				return testCase.getPartnerTrackList().size() > 0
 						|| testCase.getClientTrack() != null;
 			} else
 				return false;
@@ -222,7 +222,7 @@ public class TestCaseAndTrackSection extends TreeSection {
 			testCase.setVary(Boolean.parseBoolean(results[3]));
 
 			testCase.addNewClientTrack();
-			XMLPartnerDeploymentInformation[] allDeployers = getAllDeployers();
+			List<XMLPartnerDeploymentInformation> allDeployers = getAllDeployers();
 			for (XMLPartnerDeploymentInformation information : allDeployers) {
 				XMLPartnerTrack track = testCase.addNewPartnerTrack();
 				track.setName(information.getName());
@@ -234,12 +234,12 @@ public class TestCaseAndTrackSection extends TreeSection {
 		}
 	}
 
-	private XMLPartnerDeploymentInformation[] getAllDeployers() {
+	private List<XMLPartnerDeploymentInformation> getAllDeployers() {
 		XMLTestSuite model = getEditor().getTestSuite();
-		XMLPartnerDeploymentInformation[] partnerArray = model.getDeployment()
-				.getPartnerArray();
+		List<XMLPartnerDeploymentInformation> partnerList = model.getDeployment()
+				.getPartnerList();
 
-		return partnerArray;
+		return partnerList;
 	}
 
 	@Override
@@ -288,7 +288,7 @@ public class TestCaseAndTrackSection extends TreeSection {
 
 	private void removeTestCase(Object current) {
 		XMLTestCasesSection testCaseSection = getTestCasesXMLPart();
-		XMLTestCase[] testCaseList = testCaseSection.getTestCaseArray();
+		List<XMLTestCase> testCaseList = testCaseSection.getTestCaseList();
 		int i = 0;
 		for (XMLTestCase testCase : testCaseList) {
 			if (testCase.equals(current)) {
@@ -311,8 +311,8 @@ public class TestCaseAndTrackSection extends TreeSection {
 				XMLTestCase current = (XMLTestCase) o;
 				int i = 0;
 				boolean found = false;
-				XMLPartnerTrack[] partnerTrackList = current
-						.getPartnerTrackArray();
+				List<XMLPartnerTrack> partnerTrackList = current
+						.getPartnerTrackList();
 				for (XMLPartnerTrack track2 : partnerTrackList) {
 					if (track2.equals(track)) {
 						found = true;
@@ -389,9 +389,9 @@ public class TestCaseAndTrackSection extends TreeSection {
 
 	private String editPartnerTrack(String title, String current) {
 
-		XMLPartnerDeploymentInformation[] partnerList = getEditor()
-				.getTestSuite().getDeployment().getPartnerArray();
-		String[] partnerNames = new String[partnerList.length];
+		List<XMLPartnerDeploymentInformation> partnerList = getEditor()
+				.getTestSuite().getDeployment().getPartnerList();
+		String[] partnerNames = new String[partnerList.size()];
 
 		int i = 0;
 		boolean found = false;

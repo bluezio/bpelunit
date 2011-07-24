@@ -47,6 +47,7 @@ import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.forms.IFormPart;
 import org.eclipse.ui.forms.editor.FormEditor;
 import org.xml.sax.SAXException;
 
@@ -114,12 +115,10 @@ public class BPELUnitEditor extends FormEditor {
 	}
 
 	@Override
-	public void init(IEditorSite site, IEditorInput editorInput)
-			throws PartInitException {
+	public void init(IEditorSite site, IEditorInput editorInput) throws PartInitException {
 
 		if (!(editorInput instanceof IFileEditorInput)) {
-			throw new PartInitException(
-					"Invalid Input: Must be IFileEditorInput");
+			throw new PartInitException("Invalid Input: Must be IFileEditorInput");
 		}
 
 		IFile baseFile = ((IFileEditorInput) editorInput).getFile();
@@ -133,8 +132,7 @@ public class BPELUnitEditor extends FormEditor {
 		this.setPartName(baseFile.getName());
 
 		if (!baseFile.exists()) {
-			throw new PartInitException("Invalid Input: File " + baseFile
-					+ " does not exist.");
+			throw new PartInitException("Invalid Input: File " + baseFile + " does not exist.");
 		}
 
 		try {
@@ -156,12 +154,10 @@ public class BPELUnitEditor extends FormEditor {
 	protected void addPages() {
 
 		try {
-			this.fTestSuitePage = new TestSuitePage(this, "testSuitePage",
-					"Test Suite");
+			this.fTestSuitePage = new TestSuitePage(this, "testSuitePage", "Test Suite");
 			this.addPage(this.fTestSuitePage);
 			this.fXmlEditorPage = new XMLEditor();
-			int index = this
-					.addPage(this.fXmlEditorPage, this.getEditorInput());
+			int index = this.addPage(this.fXmlEditorPage, this.getEditorInput());
 			this.setPageText(index, "Source");
 
 			/*
@@ -261,8 +257,8 @@ public class BPELUnitEditor extends FormEditor {
 		 */
 		if (force || this.isDirty() || this.fDocument == null) {
 
-			IDocument document = this.fXmlEditorPage.getDocumentProvider()
-					.getDocument(this.getEditorInput());
+			IDocument document = this.fXmlEditorPage.getDocumentProvider().getDocument(
+					this.getEditorInput());
 			String string = document.get();
 			try {
 				this.fDocument = XMLTestSuiteDocument.Factory.parse(string);
@@ -274,8 +270,8 @@ public class BPELUnitEditor extends FormEditor {
 					listener.modelChanged();
 				}
 			} catch (Exception e) {
-				ErrorDialog.openError(this.getShell(), "Trouble parsing XML", e
-						.getMessage(), ToolSupportActivator.getErrorStatus(e));
+				ErrorDialog.openError(this.getShell(), "Trouble parsing XML", e.getMessage(),
+						ToolSupportActivator.getErrorStatus(e));
 				return false;
 			}
 		}
@@ -322,17 +318,15 @@ public class BPELUnitEditor extends FormEditor {
 
 	private void model2src(boolean force) {
 		if ((force || this.isDirty()) && (this.fDocument != null)) {
-			IDocument document = this.fXmlEditorPage.getDocumentProvider()
-					.getDocument(this.getEditorInput());
+			IDocument document = this.fXmlEditorPage.getDocumentProvider().getDocument(
+					this.getEditorInput());
 			ByteArrayOutputStream output = new ByteArrayOutputStream();
 			try {
-				this.fDocument
-						.save(output, BPELUnitUtil.getDefaultXMLOptions());
+				this.fDocument.save(output, BPELUnitUtil.getDefaultXMLOptions());
 				document.set(output.toString());
 			} catch (IOException e) {
-				ErrorDialog.openError(this.getShell(), "Error",
-						"Error writing XML model to file", ToolSupportActivator
-								.getErrorStatus(e));
+				ErrorDialog.openError(this.getShell(), "Error", "Error writing XML model to file",
+						ToolSupportActivator.getErrorStatus(e));
 			}
 		}
 	}
@@ -345,12 +339,30 @@ public class BPELUnitEditor extends FormEditor {
 		return this.fCurrentDirectory;
 	}
 
+	private String getPartnerWSDLString(XMLTrack track) {
+
+		if (track instanceof XMLPartnerTrack) {
+			XMLPartnerTrack partner = (XMLPartnerTrack) track;
+			List<XMLPartnerDeploymentInformation> partnerList = this.getTestSuite().getDeployment()
+					.getPartnerList();
+			for (XMLPartnerDeploymentInformation information : partnerList) {
+				if (information.getName().equals(partner.getName())) {
+					return information.getPartnerWsdl();
+				}
+			}
+		} else {
+			return this.getTestSuite().getDeployment().getPut().getPartnerWSDL();
+		}
+
+		return null;
+	}
+
 	private String getWSDLString(XMLTrack track) {
 
 		if (track instanceof XMLPartnerTrack) {
 			XMLPartnerTrack partner = (XMLPartnerTrack) track;
-			XMLPartnerDeploymentInformation[] partnerList = this.getTestSuite()
-					.getDeployment().getPartnerArray();
+			List<XMLPartnerDeploymentInformation> partnerList = this.getTestSuite().getDeployment()
+					.getPartnerList();
 			for (XMLPartnerDeploymentInformation information : partnerList) {
 				if (information.getName().equals(partner.getName())) {
 					return information.getWsdl();
@@ -359,14 +371,23 @@ public class BPELUnitEditor extends FormEditor {
 		} else {
 			return this.getTestSuite().getDeployment().getPut().getWsdl();
 		}
-		return null;
 
+		return null;
 	}
 
-	public Definition getWsdlForPartner(XMLTrack track)
-			throws WSDLReadingException {
+	public Definition getWsdlForPartner(XMLTrack track) throws WSDLReadingException {
 
 		String wsdl = this.getWSDLString(track);
+		if (wsdl == null || "".equals(wsdl)) {
+			return null;
+		}
+
+		return this.getWsdlForFile(wsdl);
+	}
+
+	public Definition getPartnerWsdlForPartner(XMLTrack track) throws WSDLReadingException {
+
+		String wsdl = this.getPartnerWSDLString(track);
 		if (wsdl == null || "".equals(wsdl)) {
 			return null;
 		}
@@ -388,14 +409,12 @@ public class BPELUnitEditor extends FormEditor {
 		}
 
 		if (this.notFound(resource)) {
-			resource = ResourcesPlugin.getWorkspace().getRoot()
-					.findMember(path);
+			resource = ResourcesPlugin.getWorkspace().getRoot().findMember(path);
 		}
 
 		// all hope failed...
 		if (this.notFound(resource)) {
-			throw new WSDLReadingException(
-					"Cannot find WSDL file with file path " + wsdl);
+			throw new WSDLReadingException("Cannot find WSDL file with file path " + wsdl);
 		}
 
 		IFile file = (IFile) resource;
@@ -418,22 +437,19 @@ public class BPELUnitEditor extends FormEditor {
 				this.fWSDLParser.put(definition, parser);
 
 			} catch (WSDLException e) {
-				throw new WSDLReadingException(
-						"Error loading WSDL file for partner", e);
+				throw new WSDLReadingException("Error loading WSDL file for partner", e);
 			} catch (SAXException e) {
-				MessageDialog dialog = new MessageDialog(this.getShell(),
-						"Invalid Schema", null, e.getMessage(),
-						MessageDialog.ERROR, new String[] { "OK" }, 0);
+				MessageDialog dialog = new MessageDialog(this.getShell(), "Invalid Schema", null,
+						e.getMessage(), MessageDialog.ERROR, new String[] { "OK" }, 0);
 				dialog.open();
-				throw new WSDLReadingException(
-						"Error reading Schemata in WSDL: " + e.getMessage(), e);
+				throw new WSDLReadingException("Error reading Schemata in WSDL: " + e.getMessage(),
+						e);
 			} catch (TransformerException e) {
-				MessageDialog dialog = new MessageDialog(this.getShell(),
-						"Invalid Schema", null, e.getMessage(),
-						MessageDialog.ERROR, new String[] { "OK" }, 0);
+				MessageDialog dialog = new MessageDialog(this.getShell(), "Invalid Schema", null,
+						e.getMessage(), MessageDialog.ERROR, new String[] { "OK" }, 0);
 				dialog.open();
-				throw new WSDLReadingException(
-						"Error reading Schemata in WSDL: " + e.getMessage(), e);
+				throw new WSDLReadingException("Error reading Schemata in WSDL: " + e.getMessage(),
+						e);
 			}
 		}
 		return definition;
@@ -454,5 +470,14 @@ public class BPELUnitEditor extends FormEditor {
 
 	public void removeModelChangedListener(IModelChangedListener listener) {
 		this.fListeners.remove(listener);
+	}
+
+	public void refresh() {
+		if (getActivePage() == VISUAL_PAGE) {
+			for (IFormPart part : fTestSuitePage.getManagedForm().getParts()) {
+				part.refresh();
+			}
+		}
+
 	}
 }

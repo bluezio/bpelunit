@@ -40,7 +40,7 @@ public class IfHandler implements IStructuredActivityHandler {
 	public void insertBranchMarkers(Element structured_activity)
 			throws BpelException {
 		insertMarkerForIfBranch(getFirstEnclosedActivity(structured_activity));
-		List elseif_branches = structured_activity.getChildren(ELSE_IF_ELEMENT,
+		List<?> elseif_branches = structured_activity.getChildren(ELSE_IF_ELEMENT,
 				getProcessNamespace());
 		for (int i = 0; i < elseif_branches.size(); i++) {
 			insertMarkerForElseIfBranches(getFirstEnclosedActivity((Element) elseif_branches

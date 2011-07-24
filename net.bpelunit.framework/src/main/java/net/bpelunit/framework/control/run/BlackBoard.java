@@ -30,7 +30,8 @@ public class BlackBoard<KEY, OBJECT> {
 	}
 
 	public synchronized void putObject(KEY key, OBJECT object) throws InterruptedException {
-
+		System.out.println("Putting Object to Blackboard with key " + key);
+		
 		while (map.containsKey(key)) {
 			wait(BPELUnitConstants.TIMEOUT_SLEEP_TIME);
 		}
@@ -39,7 +40,9 @@ public class BlackBoard<KEY, OBJECT> {
 	}
 
 	public synchronized OBJECT getObject(KEY key) throws TimeoutException /*, InterruptedException*/ {
-
+		System.out.println("Getting Object from Blackboard with key " + key);
+		
+		
 		int timeout= 0;
 
 		while ( (!map.containsKey(key) && (timeout < BPELUnitRunner.getTimeout()))) {

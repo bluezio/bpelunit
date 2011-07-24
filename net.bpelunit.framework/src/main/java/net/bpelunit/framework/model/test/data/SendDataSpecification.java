@@ -9,7 +9,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
@@ -119,6 +121,8 @@ public class SendDataSpecification extends DataSpecification {
          * If no literal data is available, this Velocity template will be used to produce the data to be sent.
          */
 		private String fDataTemplate;
+
+		private Map<String, String> protocolOptions = new HashMap<String, String>();
 
 	// For deep cloning contexts so they are isolated from each other
 	private static final Cloner fCloner = new Cloner();
@@ -326,4 +330,15 @@ public class SendDataSpecification extends DataSpecification {
 		return stateData;
 	}
 
+	public void putProtocolOption(String name, String value) {
+		this.protocolOptions.put(name, value);
+	}
+
+	public String getProtocolOption(String name) {
+		return protocolOptions.get(name);
+	}
+	
+	public String[] getProtocolOptionNames() {
+		return protocolOptions.keySet().toArray(new String[protocolOptions.size()]);
+	}
 }

@@ -8,13 +8,13 @@ package net.bpelunit.toolsupport.editors.wizards.components;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.xmlbeans.XmlOptions;
 import net.bpelunit.framework.xml.suite.XMLAnyElement;
 import net.bpelunit.framework.xml.suite.XMLSendActivity;
 import net.bpelunit.toolsupport.ToolSupportActivator;
 import net.bpelunit.toolsupport.editors.formwidgets.HyperlinkField;
 import net.bpelunit.toolsupport.editors.formwidgets.HyperlinkField.IHyperLinkFieldListener;
 import net.bpelunit.toolsupport.editors.wizards.NamespaceWizard;
+import net.bpelunit.toolsupport.editors.wizards.TransportOptionWizard;
 import net.bpelunit.toolsupport.editors.wizards.fields.DialogField;
 import net.bpelunit.toolsupport.editors.wizards.fields.IDialogFieldListener;
 import net.bpelunit.toolsupport.editors.wizards.fields.LayoutUtil;
@@ -24,6 +24,8 @@ import net.bpelunit.toolsupport.editors.wizards.fields.StringDialogField;
 import net.bpelunit.toolsupport.editors.wizards.fields.TextDialogField;
 import net.bpelunit.toolsupport.editors.wizards.pages.OperationWizardPage;
 import net.bpelunit.toolsupport.util.schema.nodes.Element;
+
+import org.apache.xmlbeans.XmlOptions;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.window.Window;
@@ -52,7 +54,7 @@ import org.eclipse.swt.widgets.Text;
  * @author Philip Mayer
  * 
  */
-public class SendComponent extends DataComponent implements IHyperLinkFieldListener,
+public class SendComponent extends DataComponent implements 
 		MessageChangeListener, StringValueListener {
 
 	protected TextDialogField fSendField;
@@ -169,7 +171,7 @@ public class SendComponent extends DataComponent implements IHyperLinkFieldListe
 			opts.setSavePrettyPrint();
 			opts.setSavePrettyPrintIndent(4);
 
-			Map ns = new HashMap();
+			Map<?, ?> ns = new HashMap<Object, Object>();
 			this.getTestSuite().newCursor().getAllNamespaces(ns);
 			opts.setSaveImplicitNamespaces(ns);
 
@@ -269,10 +271,34 @@ public class SendComponent extends DataComponent implements IHyperLinkFieldListe
 		LayoutUtil.setWidthHint(textControl, this.getMaxFieldWidth());
 		LayoutUtil.setHorizontalGrabbing(textControl);
 
-		HyperlinkField field = new HyperlinkField("Configure Namespace Prefixes...");
-		field.setHyperLinkFieldListener(this);
-		field.createControl(group, nColumns, GridData.BEGINNING);
+		HyperlinkField namespacePrefixField = new HyperlinkField("Configure Namespace Prefixes...");
+		namespacePrefixField.setHyperLinkFieldListener(new IHyperLinkFieldListener() {
+			public void hyperLinkActivated() {
+				WizardDialog d = new WizardDialog(getShell(), new NamespaceWizard(getTestSuite()));
+				if (d.open() == Window.OK) {
+					fireValueChanged(fSendField);
+					// Message Editor does not take part in fireValueChanged Listeners
+					// as those update far too often
+					messageEditor.updateItems();
+				}
+			}
+		});
+		namespacePrefixField.createControl(group, nColumns, GridData.BEGINNING);
 
+		HyperlinkField transportOptionField = new HyperlinkField("Add HTTP Header...");
+		transportOptionField.setHyperLinkFieldListener(new IHyperLinkFieldListener() {
+			public void hyperLinkActivated() {
+				WizardDialog d = new WizardDialog(getShell(), new TransportOptionWizard(fSendData));
+				if (d.open() == Window.OK) {
+					fireValueChanged(fSendField);
+					// Message Editor does not take part in fireValueChanged Listeners
+					// as those update far too often
+					messageEditor.updateItems();
+				}
+			}
+		});
+		transportOptionField.createControl(group, nColumns, GridData.BEGINNING);
+		
 		// If the WSDL contains only one service with one port and one
 		// operation, theses values are preselected. If this is the case, the
 		// InputElement of the Operation must be displayed from the
@@ -306,16 +332,6 @@ public class SendComponent extends DataComponent implements IHyperLinkFieldListe
 
 	public String getDelaySequence() {
 		return fDelaySelected ? this.fDelayStringField.getText() : "";
-	}
-
-	public void hyperLinkActivated() {
-		WizardDialog d = new WizardDialog(this.getShell(), new NamespaceWizard(this.getTestSuite()));
-		if (d.open() == Window.OK) {
-			this.fireValueChanged(this.fSendField);
-			// Message Editor does not take part in fireValueChanged Listeners
-			// as those update far too often
-			this.messageEditor.updateItems();
-		}
 	}
 
 	@Override

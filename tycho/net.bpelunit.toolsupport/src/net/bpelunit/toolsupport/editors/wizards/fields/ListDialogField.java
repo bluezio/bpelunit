@@ -882,10 +882,6 @@ public class ListDialogField extends DialogField {
 			// will never happen
 		}
 
-		public boolean isDeleted(Object element) {
-			return false;
-		}
-
 		public void dispose() {
 		}
 
@@ -899,11 +895,6 @@ public class ListDialogField extends DialogField {
 			doListSelected(event);
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see org.eclipse.jface.viewers.IDoubleClickListener#doubleClick(org.eclipse.jface.viewers.DoubleClickEvent)
-		 */
 		public void doubleClick(DoubleClickEvent event) {
 			doDoubleClick(event);
 		}

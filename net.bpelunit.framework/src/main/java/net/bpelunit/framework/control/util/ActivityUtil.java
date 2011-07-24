@@ -438,7 +438,7 @@ public class ActivityUtil {
 		}
 		return -1;
 	}
-
+	
 	/**
 	 * Checks whether the given XML object has a previous sibling in its parent (i.e., it is not the
 	 * first child).

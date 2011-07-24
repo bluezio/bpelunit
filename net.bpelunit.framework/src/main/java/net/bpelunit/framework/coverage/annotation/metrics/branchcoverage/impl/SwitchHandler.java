@@ -34,7 +34,7 @@ public class SwitchHandler implements IStructuredActivityHandler {
 	 */
 	public void insertBranchMarkers(Element structured_activity)
 			throws BpelException {
-		List case_branches = structured_activity.getChildren(SWITCH_CASE_ELEMENT,
+		List<?> case_branches = structured_activity.getChildren(SWITCH_CASE_ELEMENT,
 				getProcessNamespace());
 		for (int i = 0; i < case_branches.size(); i++) {
 			insertMarkerForCaseBranches(getFirstEnclosedActivity((Element) case_branches

@@ -12,18 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
-import net.bpelunit.framework.BPELUnitRunner;
-import net.bpelunit.framework.control.util.BPELUnitConstants;
-import net.bpelunit.framework.control.util.NoPersistenceConnectionManager;
-import net.bpelunit.framework.control.ws.LocalHTTPServer;
-import net.bpelunit.framework.coverage.CoverageConstants;
-import net.bpelunit.framework.exception.PartnerNotFoundException;
-import net.bpelunit.framework.exception.SynchronousSendException;
-import net.bpelunit.framework.model.test.PartnerTrack;
-import net.bpelunit.framework.model.test.TestCase;
-import net.bpelunit.framework.model.test.wire.IncomingMessage;
-import net.bpelunit.framework.model.test.wire.OutgoingMessage;
-
 import org.apache.commons.httpclient.DefaultHttpMethodRetryHandler;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
@@ -33,6 +21,16 @@ import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.apache.log4j.Logger;
 import org.apache.velocity.VelocityContext;
+import net.bpelunit.framework.BPELUnitRunner;
+import net.bpelunit.framework.control.util.BPELUnitConstants;
+import net.bpelunit.framework.control.ws.LocalHTTPServer;
+import net.bpelunit.framework.coverage.CoverageConstants;
+import net.bpelunit.framework.exception.PartnerNotFoundException;
+import net.bpelunit.framework.exception.SynchronousSendException;
+import net.bpelunit.framework.model.test.PartnerTrack;
+import net.bpelunit.framework.model.test.TestCase;
+import net.bpelunit.framework.model.test.wire.IncomingMessage;
+import net.bpelunit.framework.model.test.wire.OutgoingMessage;
 
 /**
  * 
@@ -70,8 +68,7 @@ public class TestCaseRunner {
 	private LocalHTTPServer fServer;
 
 	// Pool connections over all test cases, to avoid socket leaks
-	private static final MultiThreadedHttpConnectionManager fConnectionManager
-		= new NoPersistenceConnectionManager();
+	private static final MultiThreadedHttpConnectionManager fConnectionManager = new MultiThreadedHttpConnectionManager();
 
 	private HttpClient fClient;
 
@@ -311,6 +308,11 @@ public class TestCaseRunner {
 					"Unsupported encoding when trying to post message to web service.",
 					e);
 		}
+		
+		for(String option : message.getProtocolOptionNames()) {
+			method.addRequestHeader(option, message.getProtocolOption(option));
+		}
+		
 		method.setRequestEntity(entity);
 
 		try {

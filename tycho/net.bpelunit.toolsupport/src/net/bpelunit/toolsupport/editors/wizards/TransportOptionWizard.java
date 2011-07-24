@@ -5,8 +5,8 @@
  */
 package net.bpelunit.toolsupport.editors.wizards;
 
-import net.bpelunit.framework.xml.suite.XMLPUTDeploymentInformation;
-import net.bpelunit.toolsupport.editors.wizards.pages.DeploymentOptionWizardPage;
+import net.bpelunit.framework.xml.suite.XMLSendActivity;
+import net.bpelunit.toolsupport.editors.wizards.pages.TransportOptionWizardPage;
 
 import org.eclipse.jface.wizard.Wizard;
 
@@ -17,16 +17,16 @@ import org.eclipse.jface.wizard.Wizard;
  * @author Philip Mayer
  * 
  */
-public class DeploymentOptionWizard extends Wizard {
+public class TransportOptionWizard extends Wizard {
 
-	private DeploymentOptionWizardPage fPage;
-	private XMLPUTDeploymentInformation fPutInfo;
+	private TransportOptionWizardPage page;
+	private XMLSendActivity sendActivity;
 
-	public DeploymentOptionWizard(XMLPUTDeploymentInformation information) {
+	public TransportOptionWizard(XMLSendActivity information) {
 		super();
 		setWindowTitle("Configure the deployment");
 		setHelpAvailable(false);
-		fPutInfo = information;
+		sendActivity = information;
 	}
 
 	@Override
@@ -36,9 +36,9 @@ public class DeploymentOptionWizard extends Wizard {
 
 	@Override
 	public void addPages() {
-		fPage = new DeploymentOptionWizardPage("Deployment Options");
-		addPage(fPage);
-		fPage.init(fPutInfo);
+		page = new TransportOptionWizardPage("Deployment Options");
+		addPage(page);
+		page.init(sendActivity);
 	}
 
 }

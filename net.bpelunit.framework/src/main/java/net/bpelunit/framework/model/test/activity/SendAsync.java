@@ -90,6 +90,8 @@ public class SendAsync extends Activity {
 		msg.setTargetURL(fSendSpec.getTargetURL());
 		msg.setBody(fSendSpec.getInWireFormat());
 
+		copyProtocolOptions(fSendSpec, msg);
+		
 		IncomingMessage incoming;
 		try {
 			fSendSpec.delay();

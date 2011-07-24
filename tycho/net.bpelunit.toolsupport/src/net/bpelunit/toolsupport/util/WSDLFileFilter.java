@@ -27,7 +27,7 @@ import org.eclipse.swt.custom.BusyIndicator;
  */
 public class WSDLFileFilter extends ViewerFilter {
 
-	private Set fArchives;
+	private Set<Object> fArchives;
 
 	@Override
 	public boolean select(Viewer viewer, Object parentElement, Object element) {
@@ -41,13 +41,13 @@ public class WSDLFileFilter extends ViewerFilter {
 	private void init() {
 		BusyIndicator.showWhile(ToolSupportActivator.getDisplay(), new Runnable() {
 			public void run() {
-				fArchives= new HashSet();
+				fArchives= new HashSet<Object>();
 				traverse(ResourcesPlugin.getWorkspace().getRoot(), fArchives);
 			}
 		});
 	}
 
-	private boolean traverse(IContainer container, Set set) {
+	private boolean traverse(IContainer container, Set<Object> set) {
 		boolean added= false;
 		try {
 			IResource[] resources= container.members();

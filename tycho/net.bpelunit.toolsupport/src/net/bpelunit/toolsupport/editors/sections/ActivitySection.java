@@ -149,7 +149,7 @@ public class ActivitySection extends TreeSection {
 
 				if (activity instanceof XMLReceiveActivity) {
 					XMLReceiveActivity rcvOp = (XMLReceiveActivity) activity;
-					return rcvOp.getConditionArray();
+					return rcvOp.getConditionList().toArray();
 				}
 				if (activity instanceof XMLWaitActivity) {
 					XMLWaitActivity waitAct = (XMLWaitActivity) activity;
@@ -187,7 +187,7 @@ public class ActivitySection extends TreeSection {
 				return true;
 
 			if (element instanceof XMLReceiveActivity)
-				return ((XMLReceiveActivity) element).getConditionArray().length > 0;
+				return ((XMLReceiveActivity) element).getConditionList().size() > 0;
 
 			return false;
 		}
@@ -347,8 +347,7 @@ public class ActivitySection extends TreeSection {
 				XmlObject parent = cursor.getObject();
 				if (parent instanceof XMLReceiveActivity) {
 					XMLReceiveActivity rcvOp = (XMLReceiveActivity) parent;
-					int index = ActivityUtil
-							.getIndexFor(rcvOp.getConditionArray(), viewerSelection);
+					int index = rcvOp.getConditionList().indexOf(viewerSelection);
 					if (index != -1)
 						rcvOp.removeCondition(index);
 				}
@@ -452,34 +451,34 @@ public class ActivitySection extends TreeSection {
 	}
 
 	private int getActivityIndex(XMLTrack track, Object activity) {
-		Object[] activities = null;
+		List<? extends Object> activities = null;
 		switch (ActivityUtil.getActivityConstant(activity)) {
 		case SEND_ONLY:
-			activities = track.getSendOnlyArray();
+			activities = track.getSendOnlyList();
 			break;
 		case RECEIVE_ONLY:
-			activities = fCurrentPartnerTrack.getReceiveOnlyArray();
+			activities = fCurrentPartnerTrack.getReceiveOnlyList();
 			break;
 		case SEND_RECEIVE_SYNC:
-			activities = fCurrentPartnerTrack.getSendReceiveArray();
+			activities = fCurrentPartnerTrack.getSendReceiveList();
 			break;
 		case RECEIVE_SEND_SYNC:
-			activities = fCurrentPartnerTrack.getReceiveSendArray();
+			activities = fCurrentPartnerTrack.getReceiveSendList();
 			break;
 		case SEND_RECEIVE_ASYNC:
-			activities = fCurrentPartnerTrack.getSendReceiveAsynchronousArray();
+			activities = fCurrentPartnerTrack.getSendReceiveAsynchronousList();
 			break;
 		case RECEIVE_SEND_ASYNC:
-			activities = fCurrentPartnerTrack.getReceiveSendAsynchronousArray();
+			activities = fCurrentPartnerTrack.getReceiveSendAsynchronousList();
 			break;
 		case WAIT:
-			activities = fCurrentPartnerTrack.getWaitArray();
+			activities = fCurrentPartnerTrack.getWaitList();
 			break;
 		default:
 			return -1;
 		}
 
-		return ActivityUtil.getIndexFor(activities, activity);
+		return activities.indexOf(activity);
 	}
 
 	@Override
@@ -879,19 +878,19 @@ public class ActivitySection extends TreeSection {
 				return;
 			}
 
-			Map services = wsdlForPartner.getServices();
+			Map<?, Service> services = wsdlForPartner.getServices();
 			if (services.size() == 1) {
-				Service service = (Service) services.values().iterator().next();
+				Service service = services.values().iterator().next();
 				operation.setService(service.getQName());
 
-				Map ports = service.getPorts();
+				Map<?,Port> ports = service.getPorts();
 				if (ports.size() == 1) {
-					Port port = (Port) ports.values().iterator().next();
+					Port port = ports.values().iterator().next();
 					operation.setPort(port.getName());
 
-					List operations = port.getBinding().getPortType().getOperations();
+					List<Operation> operations = port.getBinding().getPortType().getOperations();
 					if (operations.size() == 1) {
-						operation.setOperation(((Operation) operations.get(0)).getName());
+						operation.setOperation(operations.get(0).getName());
 					}
 				}
 

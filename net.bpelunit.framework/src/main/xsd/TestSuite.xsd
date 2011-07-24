@@ -70,13 +70,18 @@
 		</xs:annotation>
 		<xs:sequence>
 			<!-- Emulate <all> with unbounded elements -->
-			<xs:element ref="property" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element ref="property" minOccurs="0"
+				maxOccurs="unbounded" />
 			<xs:element name="wsdl" type="xs:string">
 				<xs:annotation>
-					<xs:documentation>WSDL file of the PUT</xs:documentation>
+					<xs:documentation>
+						WSDL file of the PUT
+					</xs:documentation>
 				</xs:annotation>
 			</xs:element>
-			<xs:element ref="property" minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element name="partnerWSDL" type="xs:string" minOccurs="0" maxOccurs="1"></xs:element>
+            <xs:element ref="property" minOccurs="0"
+				maxOccurs="unbounded" />
 		</xs:sequence>
 		<xs:attribute name="name" type="xs:string" use="required">
 			<xs:annotation>
@@ -91,18 +96,27 @@
 	</xs:complexType>
 	<xs:complexType name="PartnerDeploymentInformation">
 		<xs:annotation>
-			<xs:documentation>A partner deployment information</xs:documentation>
+			<xs:documentation>
+				A partner deployment information
+			</xs:documentation>
 		</xs:annotation>
 		<xs:attribute name="name" type="xs:string" use="required">
 			<xs:annotation>
-				<xs:documentation>A name for this partner, to be used in the testCase section. This name forms the partner URL $baseURL/name.</xs:documentation>
+				<xs:documentation>
+					A name for this partner, to be used in the testCase
+					section. This name forms the partner URL
+					$baseURL/name.
+				</xs:documentation>
 			</xs:annotation>
 		</xs:attribute>
 		<xs:attribute name="wsdl" type="xs:string" use="required">
 			<xs:annotation>
-				<xs:documentation>Location of the defining WSDL file</xs:documentation>
+				<xs:documentation>
+					Location of the defining WSDL file
+				</xs:documentation>
 			</xs:annotation>
 		</xs:attribute>
+		<xs:attribute name="partnerWsdl" type="xs:string" use="optional"></xs:attribute>
 	</xs:complexType>
 	<xs:complexType name="TestCasesSection">
 		<xs:annotation>
@@ -220,6 +234,7 @@ If false, all activities in the partner track will be skipped. Skipped tasks are
 				<xs:annotation>
 					<xs:documentation>A send operation</xs:documentation>
 				</xs:annotation>
+				<xs:sequence>
 				<xs:choice minOccurs="1" maxOccurs="1">
 					<xs:element name="data" type="AnyElement" >
 						<xs:annotation>
@@ -229,7 +244,10 @@ If false, all activities in the partner track will be skipped. Skipped tasks are
 						<xs:annotation>
 							<xs:documentation>Apache Velocity template to be expanded to produce the SOAP body.</xs:documentation>
 						</xs:annotation></xs:element>
-				</xs:choice>
+                </xs:choice>
+	<xs:element name="transportOption" type="Property"
+		maxOccurs="unbounded" minOccurs="0"></xs:element>
+                </xs:sequence>
 				<xs:attribute name="fault" type="xs:boolean" use="optional"/>
 				<xs:attribute name="delaySequence" type="xs:string" use="optional"/>
 				<xs:attribute name="faultcode" type="xs:QName" use="optional"/>
@@ -264,7 +282,7 @@ If false, all activities in the partner track will be skipped. Skipped tasks are
 				<xs:annotation>
 					<xs:documentation>A (sync or async) two-way operation</xs:documentation>
 				</xs:annotation>
-				<xs:all>
+				<xs:all>				
 					<xs:element name="receive" type="ReceiveActivity"/>
 					<xs:element name="send" type="SendActivity"/>
 					<xs:element name="mapping" type="Mapping" minOccurs="0"/>

@@ -50,7 +50,6 @@ public class SendReceiveSync extends TwoWaySyncActivity {
 
 	@Override
 	public void run(ActivityContext context) {
-		context.setHeaderProcessor(fHeaderProcessor);
 
 		fSendSpec.handle(context);
 
@@ -64,6 +63,8 @@ public class SendReceiveSync extends TwoWaySyncActivity {
 		msg.setSOAPAction(fSendSpec.getSOAPHTTPAction());
 		msg.setBody(fSendSpec.getInWireFormat());
 
+		copyProtocolOptions(fSendSpec, msg);
+		
 		IncomingMessage returnMsg;
 		try {
 			fSendSpec.delay();

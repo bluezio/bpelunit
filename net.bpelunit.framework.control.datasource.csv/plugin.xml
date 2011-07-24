@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.2"?>
-<plugin>
+<plugin id="net.bpelunit.framework.control.datasource.csv">
    <extension
          point="net.bpelunit.framework.client.eclipse.dataSource">
       <datasource
@@ -9,6 +9,4 @@
             class="net.bpelunit.framework.control.datasource.csv.CSVDataSource">
       </datasource>
    </extension>
-
-
 </plugin>

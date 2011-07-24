@@ -54,11 +54,15 @@ public class Partner {
 	 */
 	private String fBasePath;
 
+	private String fPathToPartnerWSDL;
+
 	private Definition fWSDLDefinition;
 
-	public Partner(String name, String testBasePath, String wsdlName, String baseURL) throws SpecificationException {
+	private Definition fPartnerWSDLDefinition;
+
+	public Partner(String name, String testBasePath, String wsdlName, String partnerWSDLName, String baseURL) throws SpecificationException {
 		fName= name;
-		fPathToWSDL= testBasePath + wsdlName;
+		
 		fBasePath= testBasePath;
 
 		fSimulatedURL= baseURL;
@@ -66,18 +70,33 @@ public class Partner {
 			fSimulatedURL+= "/";
 		fSimulatedURL+= fName;
 
+		fPathToWSDL= testBasePath + wsdlName;
+		fWSDLDefinition = loadWsdlDefinition(fPathToWSDL);
+		
+		if(partnerWSDLName != null && !"".equals(partnerWSDLName)) {
+			fPathToPartnerWSDL = testBasePath + partnerWSDLName;
+			fPartnerWSDLDefinition = loadWsdlDefinition(fPathToPartnerWSDL);
+		}
+	}
+
+	private Definition loadWsdlDefinition(String wsdlFileName)
+			throws SpecificationException {
 		// Check file exists
-		if (!new File(fPathToWSDL).exists())
-			throw new SpecificationException("Cannot read WSDL file for partner " + getName() + ": File \"" + fPathToWSDL + "\" not found.");
+		if (!new File(wsdlFileName).exists())
+			throw new SpecificationException(
+					"Cannot read WSDL file for partner " + getName()
+							+ ": File \"" + wsdlFileName + "\" not found.");
 
 		// load WSDL
 		try {
-			WSDLFactory factory= WSDLFactory.newInstance();
-			WSDLReader reader= factory.newWSDLReader();
+			WSDLFactory factory = WSDLFactory.newInstance();
+			WSDLReader reader = factory.newWSDLReader();
 			reader.setFeature(Constants.FEATURE_VERBOSE, false);
-			fWSDLDefinition= reader.readWSDL(fPathToWSDL);
+			return reader.readWSDL(wsdlFileName);
 		} catch (WSDLException e) {
-			throw new SpecificationException("Error while reading WSDL for partner " + getName() + " from file \"" + fPathToWSDL + "\".", e);
+			throw new SpecificationException(
+					"Error while reading WSDL for partner " + getName()
+							+ " from file \"" + wsdlFileName + "\".", e);
 		}
 	}
 
@@ -96,12 +115,21 @@ public class Partner {
 	public SOAPOperationCallIdentifier getOperation(QName service, String port, String operationName, SOAPOperationDirectionIdentifier direction)
 			throws SpecificationException {
 
-		return new SOAPOperationCallIdentifier(fWSDLDefinition, service, port, operationName, direction);
+		Definition definition = null;
+		
+		if(service.getNamespaceURI().equals(fWSDLDefinition.getTargetNamespace())) {
+			definition = fWSDLDefinition;
+		} else {
+			definition = fPartnerWSDLDefinition;
+		}
+		
+		return new SOAPOperationCallIdentifier(definition, service, port, operationName, direction);
 	}
 	
-	public Definition getWSDLDefinition(){
-		return fWSDLDefinition;
-	}
+//	TODO Remove if really not used
+//	public Definition getWSDLDefinition(){
+//		return fWSDLDefinition;
+//	}
 	
 	@Override
 	public String toString() {

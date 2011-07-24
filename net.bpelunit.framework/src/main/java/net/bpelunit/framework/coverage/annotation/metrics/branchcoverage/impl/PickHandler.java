@@ -45,7 +45,7 @@ public class PickHandler implements IStructuredActivityHandler {
 
 	private void identifyBranches(Element element, String name)
 			throws BpelException {
-		List children = element.getChildren(name, getProcessNamespace());
+		List<?> children = element.getChildren(name, getProcessNamespace());
 		Element child;
 		for (int i = 0; i < children.size(); i++) {
 			child = (Element) children.get(i);

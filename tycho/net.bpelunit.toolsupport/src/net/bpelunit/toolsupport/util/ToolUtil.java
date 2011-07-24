@@ -50,7 +50,7 @@ public class ToolUtil {
 		if ("".equals(sendXML))
 			return null;
 
-		Map namespaceMap= new HashMap();
+		Map<Object, Object> namespaceMap= new HashMap<Object, Object>();
 
 		// Add dummy element.
 		suite.newCursor().getAllNamespaces(namespaceMap);

@@ -5,7 +5,7 @@
  */
 package net.bpelunit.toolsupport.editors.wizards.fields;
 
-import org.eclipse.jface.util.Assert;
+import org.eclipse.core.runtime.Assert;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;

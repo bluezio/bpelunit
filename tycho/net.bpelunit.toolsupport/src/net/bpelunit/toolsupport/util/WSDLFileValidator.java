@@ -21,23 +21,34 @@ import org.eclipse.ui.dialogs.ISelectionStatusValidator;
  */
 public class WSDLFileValidator implements ISelectionStatusValidator {
 
-	private BPELUnitEditor fEditor;
+	private BPELUnitEditor editor;
+	private boolean required;
 
 	public WSDLFileValidator(BPELUnitEditor editor) {
-		fEditor= editor;
+		this(editor, true);
+	}
+
+	public WSDLFileValidator(BPELUnitEditor editor, boolean required) {
+		this.editor = editor;
+		this.required = required;
 	}
 
 	public IStatus validate(Object[] selection) {
-		if ( (selection.length != 1) || (! (selection[0] instanceof IFile))) {
-			return new Status(IStatus.ERROR, ToolSupportActivator.getPluginId(), 0, "Please select a WSDL file", null);
+		if(!required && selection.length == 0) {
+			return new Status(IStatus.OK, ToolSupportActivator.getPluginId(), 0, "", null); //$NON-NLS-1$
+		}
+		
+		if ((selection.length != 1) || (!(selection[0] instanceof IFile))) {
+			return new Status(IStatus.ERROR, ToolSupportActivator.getPluginId(), 0,
+					"Please select a WSDL file", null);
 		}
 
 		// Validate it...
 		try {
-			IFile file= (IFile) selection[0];
-			fEditor.getWsdlForFile(file.getProjectRelativePath().toString());
+			IFile file = (IFile) selection[0];
+			editor.getWsdlForFile(file.getProjectRelativePath().toString());
 		} catch (WSDLReadingException e) {
-			String msg= e.getMessage() + ( (e.getCause() != null) ? ": " + e.getCause() : "");
+			String msg = e.getMessage() + ((e.getCause() != null) ? ": " + e.getCause() : "");
 			return new Status(IStatus.ERROR, ToolSupportActivator.getPluginId(), 0, msg, null);
 		}
 

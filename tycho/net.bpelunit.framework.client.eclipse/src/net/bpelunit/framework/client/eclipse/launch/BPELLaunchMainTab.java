@@ -48,7 +48,7 @@ import org.eclipse.ui.dialogs.ElementTreeSelectionDialog;
 import org.eclipse.ui.dialogs.ISelectionStatusValidator;
 import org.eclipse.ui.model.WorkbenchContentProvider;
 import org.eclipse.ui.model.WorkbenchLabelProvider;
-import org.eclipse.ui.views.navigator.ResourceSorter;
+import org.eclipse.ui.views.navigator.ResourceComparator;
 
 /**
  * The main tab for the BPELUnit test Suite Runner.
@@ -232,7 +232,8 @@ public class BPELLaunchMainTab extends AbstractLaunchConfigurationTab {
 		dialog.setTitle("Select a .bpts file:");
 		dialog.setMessage("Select the .bpts file to run:");
 		dialog.setInput(ResourcesPlugin.getWorkspace().getRoot());
-		dialog.setSorter(new ResourceSorter(ResourceSorter.NAME));
+		dialog.setComparator(new ResourceComparator(ResourceComparator.NAME));
+		// TODO DL Test dialog.setSorter(new ResourceSorter(ResourceSorter.NAME));
 		dialog.addFilter(new ViewerFilter() {
 			@Override
 			public boolean select(Viewer viewer, Object parentElement, Object element) {

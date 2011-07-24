@@ -37,8 +37,6 @@
               <value>0</value>
             </condition>
           </receive>
-
-          <headerProcessor name="wsa"/>
         </sendReceive>
       </clientTrack>
     </testCase>
@@ -70,8 +68,6 @@
               <value>'A'</value>
             </condition>
           </receive>
-
-          <headerProcessor name="wsa"/>
         </sendReceive>
       </clientTrack>
     </testCase>
@@ -108,8 +104,6 @@
               <value>'A'</value>
             </condition>
           </receive>
-
-          <headerProcessor name="wsa"/>
         </sendReceive>
       </clientTrack>
     </testCase>
@@ -151,8 +145,6 @@
               <value>'A'</value>
             </condition>
           </receive>
-
-          <headerProcessor name="wsa"/>
         </sendReceive>
       </clientTrack>
     </testCase>

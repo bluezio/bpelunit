@@ -11,7 +11,6 @@ import java.util.List;
 import net.bpelunit.framework.client.eclipse.dialog.FieldBasedInputDialog;
 import net.bpelunit.framework.client.eclipse.dialog.field.TextField;
 import net.bpelunit.framework.client.eclipse.dialog.validate.NotEmptyValidator;
-import net.bpelunit.framework.control.util.ActivityUtil;
 import net.bpelunit.framework.xml.suite.XMLCondition;
 import net.bpelunit.framework.xml.suite.XMLReceiveActivity;
 import net.bpelunit.toolsupport.editors.formwidgets.HyperlinkField;
@@ -19,6 +18,7 @@ import net.bpelunit.toolsupport.editors.formwidgets.HyperlinkField.IHyperLinkFie
 import net.bpelunit.toolsupport.editors.wizards.NamespaceWizard;
 import net.bpelunit.toolsupport.editors.wizards.fields.ListDialogField;
 import net.bpelunit.toolsupport.util.XPathValidator;
+
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.ITableLabelProvider;
@@ -107,7 +107,7 @@ public class ReceiveComponent extends StructuredDataComponent implements IHyperL
 	public void handleRemovePressed() {
 		XMLCondition cond= getSelectedCondition();
 		if (cond != null) {
-			int index= ActivityUtil.getIndexFor(fReceiveOperation.getConditionArray(), cond);
+			int index= fReceiveOperation.getConditionList().indexOf(cond);
 			if (index != -1) {
 				fReceiveOperation.removeCondition(index);
 				recreateInput();
@@ -186,7 +186,7 @@ public class ReceiveComponent extends StructuredDataComponent implements IHyperL
 
 	public void recreateInput() {
 		List<Object> l = new ArrayList<Object>();
-		for(Object o : fReceiveOperation.getConditionArray()) {
+		for(Object o : fReceiveOperation.getConditionList()) {
 			l.add(o);
 		}
 		fConditionsField.setElements(l);

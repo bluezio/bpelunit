@@ -20,9 +20,11 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.xmlbeans.XmlOptions;
 import net.bpelunit.framework.control.result.XMLResultProducer;
 import net.bpelunit.framework.control.soap.NamespaceContextImpl;
-import net.bpelunit.framework.control.util.BPELUnitConstants;
 import net.bpelunit.framework.exception.ConfigurationException;
 import net.bpelunit.framework.exception.DeploymentException;
 import net.bpelunit.framework.exception.SpecificationException;
@@ -31,11 +33,6 @@ import net.bpelunit.framework.model.test.TestSuite;
 import net.bpelunit.framework.model.test.data.SOAPOperationCallIdentifier;
 import net.bpelunit.framework.model.test.data.SOAPOperationDirectionIdentifier;
 import net.bpelunit.framework.xml.result.XMLTestResultDocument;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.xmlbeans.XmlObject;
-import org.apache.xmlbeans.XmlOptions;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -68,7 +65,7 @@ public class TestUtil {
 
 	public static SOAPOperationCallIdentifier getCall(String path, String wsdl, String operationName) throws SpecificationException {
 		String abspath = FileUtils.toFile(TestUtil.class.getResource(path)).getAbsolutePath() + File.separator;
-		Partner p= new Partner("MyPartner", abspath, wsdl, "");
+		Partner p= new Partner("MyPartner", abspath, wsdl, "", "");
 		QName service= new QName("http://www.example.org/MyPartner/", "MyPartner");
 		SOAPOperationCallIdentifier operation= p.getOperation(service, "MyPartnerSOAP", operationName, SOAPOperationDirectionIdentifier.INPUT);
 		return operation;
@@ -97,19 +94,7 @@ public class TestUtil {
 	}
 
 	public static XMLTestResultDocument getXMLResults(File bpts) throws Exception {
-		final XMLTestResultDocument xmlRDoc = XMLResultProducer.getXMLResults(getResults(bpts));
-
-		// Discard data packages with SOAP envelopes: we are only interested
-		// in the literal XML data. The SOAP envelopes change from run to run,
-		// due to the UUIDs in the Message IDs.
-		XmlObject[] envelopes = xmlRDoc.selectPath(String.format(
-			"declare namespace soap='%s' $this//soap:Envelope",
-			BPELUnitConstants.SOAP_1_1_NAMESPACE));
-		for (XmlObject envelope : envelopes) {
-			envelope.set(XmlObject.Factory.newInstance());
-		}
-
-		return xmlRDoc;
+		return XMLResultProducer.getXMLResults(getResults(bpts));
 	}
 
 	public static TestSuite getResults(File bpts)

@@ -168,7 +168,6 @@ public class VelocityDataSource implements IDataSource {
 		return script;
 	}
 
-	@SuppressWarnings("unchecked")
 	private void validateIteratedVars() throws DataSourceException {
 		if (fIteratedVars == null) {
 			throw new DataSourceException(PROPERTY_ITERATED_VARS
@@ -195,7 +194,7 @@ public class VelocityDataSource implements IDataSource {
 						+ " does not contain a list literal.");
 			}
 
-			List arrList = (List) value;
+			List<?> arrList = (List<?>) value;
 			if (fRowCount != -1) {
 				if (arrList.size() != fRowCount) {
 					throw new DataSourceException("Iterated variable " + var

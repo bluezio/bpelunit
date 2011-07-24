@@ -13,13 +13,13 @@ import net.bpelunit.framework.client.eclipse.dialog.FieldBasedInputDialog;
 import net.bpelunit.framework.client.eclipse.dialog.field.SelectionField;
 import net.bpelunit.framework.client.eclipse.dialog.field.TextField;
 import net.bpelunit.framework.client.eclipse.dialog.validate.NotEmptyValidator;
-import net.bpelunit.framework.control.util.ActivityUtil;
 import net.bpelunit.framework.xml.suite.XMLProperty;
 import net.bpelunit.framework.xml.suite.XMLTwoWayActivity;
 import net.bpelunit.toolsupport.editors.wizards.fields.ComboDialogField;
 import net.bpelunit.toolsupport.editors.wizards.fields.DialogField;
 import net.bpelunit.toolsupport.editors.wizards.fields.IDialogFieldListener;
 import net.bpelunit.toolsupport.editors.wizards.fields.ListDialogField;
+
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.jface.viewers.ITableLabelProvider;
@@ -133,7 +133,7 @@ public class HeaderProcessorComponent extends StructuredDataComponent {
 	public void handleRemovePressed() {
 		XMLProperty prop= getSelectedProperty();
 		if (prop != null) {
-			int index= ActivityUtil.getIndexFor(fParentActivity.getHeaderProcessor().getPropertyArray(), prop);
+			int index= fParentActivity.getHeaderProcessor().getPropertyList().indexOf(prop);
 			if (index != -1) {
 				fParentActivity.getHeaderProcessor().removeProperty(index);
 				recreateInput();
@@ -153,7 +153,7 @@ public class HeaderProcessorComponent extends StructuredDataComponent {
 
 	public void recreateInput() {
 		List<Object> l = new ArrayList<Object>();
-		for(Object o : fParentActivity.getHeaderProcessor().getPropertyArray()) {
+		for(Object o : fParentActivity.getHeaderProcessor().getPropertyList()) {
 			l.add(o);
 		}
 		fPropertiesField.setElements(l);
@@ -239,7 +239,7 @@ public class HeaderProcessorComponent extends StructuredDataComponent {
 			if (readableName != null && index != -1) {
 				fPropertiesField.setEnabled(true);
 				List<Object> l = new ArrayList<Object>();
-				for(Object o : fParentActivity.getHeaderProcessor().getPropertyArray()) {
+				for(Object o : fParentActivity.getHeaderProcessor().getPropertyList()) {
 					l.add(o);
 				}
 				fPropertiesField.setElements(l);

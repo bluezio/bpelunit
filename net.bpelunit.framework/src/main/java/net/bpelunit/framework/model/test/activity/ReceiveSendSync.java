@@ -70,6 +70,8 @@ public class ReceiveSendSync extends TwoWaySyncActivity {
 
 		OutgoingMessage msg= new OutgoingMessage();
 
+		copyProtocolOptions(fSendSpec, msg);
+		
 		if (!fReceiveSpec.hasProblems()) {
 			// Receive was successful
 

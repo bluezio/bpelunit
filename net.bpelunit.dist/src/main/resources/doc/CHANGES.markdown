@@ -3,7 +3,7 @@ Changelog
 
 Staged for next version
 -----------------------
-* _Change_: BPELUnit uses a different HTTP connection for each sendReceive activity. This ensures sendReceive activities are kept separate from each other and avoids race conditions.
+Nothing for now.
 
 Version 1.5.0
 -----------------------

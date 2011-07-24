@@ -8,16 +8,12 @@ package net.bpelunit.toolsupport.editors.wizards.pages;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.bpelunit.framework.client.eclipse.ExtensionControl;
 import net.bpelunit.framework.client.eclipse.dialog.FieldBasedInputDialog;
-import net.bpelunit.framework.client.eclipse.dialog.field.DeployerOptionModifyListener;
 import net.bpelunit.framework.client.eclipse.dialog.field.SelectionField;
 import net.bpelunit.framework.client.eclipse.dialog.field.TextField;
 import net.bpelunit.framework.client.eclipse.dialog.validate.NotEmptyValidator;
-import net.bpelunit.framework.control.ext.IBPELDeployer;
-import net.bpelunit.framework.control.util.ExtensionRegistry;
-import net.bpelunit.framework.xml.suite.XMLPUTDeploymentInformation;
 import net.bpelunit.framework.xml.suite.XMLProperty;
+import net.bpelunit.framework.xml.suite.XMLSendActivity;
 import net.bpelunit.toolsupport.editors.wizards.WizardPageCode;
 import net.bpelunit.toolsupport.editors.wizards.fields.ListDialogField;
 
@@ -33,14 +29,12 @@ import org.eclipse.swt.widgets.Composite;
  * @author Philip Mayer
  * 
  */
-public class DeploymentOptionWizardPage extends StructuredActivityWizardPage {
+public class TransportOptionWizardPage extends StructuredActivityWizardPage {
 
 	private ListDialogField fSelectionField;
-	private XMLPUTDeploymentInformation fPutInfo;
-	private String[] fPossibleParameterNames = null;
-	private Class<? extends IBPELDeployer> fDeployerClass;
+	private XMLSendActivity sendActivity;
 
-	public DeploymentOptionWizardPage(String pageName) {
+	public TransportOptionWizardPage(String pageName) {
 		super(pageName);
 		setTitle("Configure Deployment");
 		setDescription("Add or remove deployment option for the selected PUT deployer");
@@ -51,9 +45,9 @@ public class DeploymentOptionWizardPage extends StructuredActivityWizardPage {
 
 		String[] edit = editProperty(null);
 		if (edit != null) {
-			XMLProperty xmlCondition = fPutInfo.addNewProperty();
-			xmlCondition.setName(edit[0]);
-			xmlCondition.setStringValue(edit[1]);
+			XMLProperty xmlProperty = sendActivity.addNewTransportOption();
+			xmlProperty.setName(edit[0]);
+			xmlProperty.setStringValue(edit[1]);
 			recreateInput();
 			enableButtonsForSelection(fSelectionField, false);
 		}
@@ -81,13 +75,14 @@ public class DeploymentOptionWizardPage extends StructuredActivityWizardPage {
 	public void handleRemovePressed() {
 		XMLProperty prop = getSelectedProperty();
 		if (prop != null) {
-			int index = fPutInfo.getPropertyList().indexOf(prop);
+			int index = sendActivity.getTransportOptionList().indexOf(prop);
 			if (index != -1) {
-				fPutInfo.removeProperty(index);
+				sendActivity.removeTransportOption(index);
 				recreateInput();
 				enableButtonsForSelection(fSelectionField, false);
 			}
 		}
+
 	}
 
 	private XMLProperty getSelectedProperty() {
@@ -100,7 +95,7 @@ public class DeploymentOptionWizardPage extends StructuredActivityWizardPage {
 
 	public void recreateInput() {
 		List<Object> l = new ArrayList<Object>();
-		for (Object o : fPutInfo.getPropertyList()) {
+		for (Object o : sendActivity.getTransportOptionList()) {
 			l.add(o);
 		}
 		fSelectionField.setElements(l);
@@ -119,18 +114,15 @@ public class DeploymentOptionWizardPage extends StructuredActivityWizardPage {
 				title);
 
 		SelectionField keyField = new SelectionField(dialog, "Key", initialKey,
-				"Keys...", this.fPossibleParameterNames);
+				"Keys...", new String[0]);
 		keyField.setValidator(new NotEmptyValidator("Key"));
 		dialog.addField(keyField);
 
 		TextField valueField = new TextField(dialog, "Value", initialValue,
-				TextField.Style.SINGLE); // TODO
+				TextField.Style.SINGLE);
 		valueField.setValidator(new NotEmptyValidator("Value"));
 		dialog.addField(valueField);
 
-		keyField.addModifyListener(new DeployerOptionModifyListener(keyField, valueField,
-				fDeployerClass));
-		
 		if (dialog.open() != Window.OK)
 			return null;
 
@@ -140,8 +132,8 @@ public class DeploymentOptionWizardPage extends StructuredActivityWizardPage {
 		return s;
 	}
 
-	public void init(XMLPUTDeploymentInformation putInfo) {
-		fPutInfo = putInfo;
+	public void init(XMLSendActivity sendActivity) {
+		this.sendActivity = sendActivity;
 
 		ListFieldListener deploymentConfigListener = createListFieldListener();
 		fSelectionField = new ListDialogField(deploymentConfigListener,
@@ -152,23 +144,11 @@ public class DeploymentOptionWizardPage extends StructuredActivityWizardPage {
 		fSelectionField.setLabelText(null);
 
 		List<Object> l = new ArrayList<Object>();
-		for (Object o : fPutInfo.getPropertyList()) {
+		for (Object o : sendActivity.getTransportOptionList()) {
 			l.add(o);
 		}
 		fSelectionField.setElements(l);
 		enableButtonsForSelection(fSelectionField, false);
-
-		try {
-			String deployerName = fPutInfo.getType();
-			IBPELDeployer deployer = ExtensionControl.findDeployerExtension(
-					deployerName).createNew();
-			fDeployerClass = deployer.getClass();
-			this.fPossibleParameterNames = ExtensionRegistry
-					.getPossibleConfigurationOptions(deployer.getClass(), true)
-					.toArray(new String[0]);
-		} catch (Throwable t) {
-			this.fPossibleParameterNames = new String[0];
-		}
 	}
 
 	@Override

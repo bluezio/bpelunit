@@ -217,17 +217,13 @@ public class WSDLParser {
 	 * @param schemaElement
 	 *            representing on schema element of the WSDL
 	 */
-	@SuppressWarnings("unchecked")
 	private static void addNamespaces(Map<String, String> namespaces,
 			org.w3c.dom.Element schemaElement) {
-		for (Object o : namespaces.entrySet()) {
-			if (o instanceof Entry) {
-				Entry entry = (Entry) o;
+		for (Entry<String, String> entry : namespaces.entrySet()) {
 				String attribute = "xmlns:" + (String) entry.getKey();
 				if (schemaElement.getAttributeNode(attribute) == null) {
 					schemaElement.setAttribute(attribute, (String) entry.getValue());
 				}
-			}
 		}
 	}
 

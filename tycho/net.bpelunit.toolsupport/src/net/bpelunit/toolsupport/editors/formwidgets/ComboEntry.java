@@ -6,6 +6,7 @@
 package net.bpelunit.toolsupport.editors.formwidgets;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -80,5 +81,9 @@ public class ComboEntry extends TextEntry {
 					toSet= element[0];
 			}
 		super.setValue(toSet);
+	}
+
+	public void addFocusListener(FocusListener listener) {
+		text.addFocusListener(listener);
 	}
 }

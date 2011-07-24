@@ -5,9 +5,16 @@
  */
 package net.bpelunit.toolsupport.editors.sections;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import net.bpelunit.framework.client.eclipse.ExtensionControl;
 import net.bpelunit.framework.client.eclipse.dialog.field.FileSelector;
+import net.bpelunit.framework.control.ext.IBPELDeployer;
+import net.bpelunit.framework.control.util.ExtensionRegistry;
+import net.bpelunit.framework.exception.SpecificationException;
 import net.bpelunit.framework.xml.suite.XMLPUTDeploymentInformation;
+import net.bpelunit.framework.xml.suite.XMLProperty;
 import net.bpelunit.toolsupport.editors.TestSuitePage;
 import net.bpelunit.toolsupport.editors.formwidgets.ComboEntry;
 import net.bpelunit.toolsupport.editors.formwidgets.ContextPart;
@@ -18,11 +25,15 @@ import net.bpelunit.toolsupport.editors.formwidgets.TextEntry;
 import net.bpelunit.toolsupport.editors.wizards.DeploymentOptionWizard;
 import net.bpelunit.toolsupport.util.WSDLFileFilter;
 import net.bpelunit.toolsupport.util.WSDLFileValidator;
+
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.window.Window;
 import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.FocusEvent;
+import org.eclipse.swt.events.FocusListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.forms.events.HyperlinkEvent;
@@ -32,8 +43,8 @@ import org.eclipse.ui.forms.widgets.Section;
 import org.eclipse.ui.forms.widgets.TableWrapLayout;
 
 /**
- * The PUT section allows the user to edit the PUT name, deployment type, and WSDL file, and also
- * offers a link to the deployment options editor.
+ * The PUT section allows the user to edit the PUT name, deployment type, and
+ * WSDL file, and also offers a link to the deployment options editor.
  * 
  * @version $Id$
  * @author Philip Mayer
@@ -55,19 +66,22 @@ public class PUTSection extends BPELUnitSection implements ContextPart, IHyperli
 		section.setText("Process Under Test");
 
 		section.setLayoutData(new GridData(SWT.FILL, SWT.BEGINNING, true, false));
-		section.setDescription("Enter a name, type, and WSDL file for the PUT.");
+		section.setDescription("Enter a name, deployer, and WSDL file for the process under test (PUT).");
 
-		Composite content= toolkit.createComposite(section);
-		TableWrapLayout layout= new TableWrapLayout();
-		layout.leftMargin= layout.rightMargin= toolkit.getBorderStyle() != SWT.NULL ? 0 : 2;
-		layout.numColumns= 3;
+		Composite content = toolkit.createComposite(section);
+		TableWrapLayout layout = new TableWrapLayout();
+		layout.leftMargin = layout.rightMargin = toolkit.getBorderStyle() != SWT.NULL ? 0 : 2;
+		layout.numColumns = 3;
 		content.setLayout(layout);
 
 		createNameEntry(content, toolkit);
 		createTypeEntry(content, toolkit);
 		createWSDLEntry(content, toolkit);
 
-		createText(content, "<form><p><a href=\"deploymentOptions\">Configure Deployment Options...</a></p></form>", toolkit, this);
+		createText(
+				content,
+				"<form><p><a href=\"deploymentOptions\">Configure Deployment Options...</a></p></form>",
+				toolkit, this);
 
 		section.setClient(content);
 		toolkit.paintBordersFor(content);
@@ -75,7 +89,7 @@ public class PUTSection extends BPELUnitSection implements ContextPart, IHyperli
 
 	private void createWSDLEntry(Composite client, FormToolkit toolkit) {
 
-		fWSDLEntry= new FormEntry(client, toolkit, "WSDL", "Browse...", true);
+		fWSDLEntry = new FormEntry(client, toolkit, "WSDL", "Browse...", true);
 
 		fWSDLEntry.setFormEntryListener(new FormEntryAdapter(this) {
 			@Override
@@ -99,13 +113,13 @@ public class PUTSection extends BPELUnitSection implements ContextPart, IHyperli
 
 	protected void handleChooseWSDLSelected() {
 
-		String currentFile= fWSDLEntry.getValue();
+		String currentFile = fWSDLEntry.getValue();
 
-		IProject currentProject= getEditor().getCurrentProject();
-		IContainer currentDirectory= getEditor().getCurrentDirectory();
+		IProject currentProject = getEditor().getCurrentProject();
+		IContainer currentDirectory = getEditor().getCurrentDirectory();
 
-		String path= FileSelector.getFile(getShell(), currentFile, new WSDLFileValidator(getEditor()), new WSDLFileFilter(), currentProject,
-				currentDirectory);
+		String path = FileSelector.getFile(getShell(), currentFile, new WSDLFileValidator(
+				getEditor()), new WSDLFileFilter(), currentProject, currentDirectory);
 
 		if (path != null) {
 			fWSDLEntry.setValue(path);
@@ -117,7 +131,7 @@ public class PUTSection extends BPELUnitSection implements ContextPart, IHyperli
 
 	private void createNameEntry(Composite content, FormToolkit toolkit) {
 
-		fNameEntry= new TextEntry(content, toolkit, "PUT Name", SWT.SINGLE);
+		fNameEntry = new TextEntry(content, toolkit, "Process Name", SWT.SINGLE);
 		fNameEntry.setFormEntryListener(new EntryAdapter(this) {
 
 			@Override
@@ -130,7 +144,7 @@ public class PUTSection extends BPELUnitSection implements ContextPart, IHyperli
 
 	private void createTypeEntry(Composite content, FormToolkit toolkit) {
 
-		fTypeEntry= new ComboEntry(content, toolkit, "PUT Type");
+		fTypeEntry = new ComboEntry(content, toolkit, "Deployer");
 		fTypeEntry.setItems(ExtensionControl.getDeployerMetaInformation());
 		fTypeEntry.setFormEntryListener(new EntryAdapter(this) {
 
@@ -140,6 +154,57 @@ public class PUTSection extends BPELUnitSection implements ContextPart, IHyperli
 			}
 		});
 
+		fTypeEntry.addFocusListener(new FocusListener() {
+
+			@Override
+			public void focusLost(FocusEvent e) {
+
+				try {
+					List<Integer> unsupportedPropertyIndices = calcIncompatiblePropertyIndices();
+
+					if (unsupportedPropertyIndices.size() > 0) {
+						if (MessageDialog
+								.openQuestion(getShell(), "Remove Deployer Options",
+										"Do you want to remove deployer options that are not supported by the chosen deployer?")) {
+							removePropertiesByIndex(unsupportedPropertyIndices);
+						}
+					}
+				} catch (SpecificationException e1) {
+				}
+
+			}
+
+			private void removePropertiesByIndex(List<Integer> unsupportedPropertyIndices) {
+				for (int i : unsupportedPropertyIndices) {
+					getPUT().removeProperty(i);
+				}
+			}
+
+			private List<Integer> calcIncompatiblePropertyIndices() throws SpecificationException {
+				String deployerName = fTypeEntry.getValue();
+				IBPELDeployer deployer = ExtensionControl.findDeployerExtension(deployerName)
+						.createNew();
+
+				List<String> possiblePropertyNames = ExtensionRegistry
+						.getPossibleConfigurationOptions(deployer.getClass(), true);
+
+				List<XMLProperty> currentProperties = getPUT().getPropertyList();
+
+				List<Integer> unsupportedPropertyIndices = new ArrayList<Integer>();
+
+				for (int i = 0; i < currentProperties.size(); i++) {
+					XMLProperty p = currentProperties.get(i);
+					if (!possiblePropertyNames.contains(p.getName())) {
+						unsupportedPropertyIndices.add(i);
+					}
+				}
+				return unsupportedPropertyIndices;
+			}
+
+			@Override
+			public void focusGained(FocusEvent e) {
+			}
+		});
 	}
 
 	@Override
@@ -161,7 +226,7 @@ public class PUTSection extends BPELUnitSection implements ContextPart, IHyperli
 
 	public void linkActivated(HyperlinkEvent e) {
 
-		WizardDialog dialog= new WizardDialog(getShell(), new DeploymentOptionWizard(getPUT()));
+		WizardDialog dialog = new WizardDialog(getShell(), new DeploymentOptionWizard(getPUT()));
 		if (dialog.open() == Window.OK) {
 			markDirty();
 		}
