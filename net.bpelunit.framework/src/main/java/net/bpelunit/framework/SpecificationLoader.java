@@ -57,7 +57,6 @@ import net.bpelunit.framework.model.test.data.SOAPOperationCallIdentifier;
 import net.bpelunit.framework.model.test.data.SOAPOperationDirectionIdentifier;
 import net.bpelunit.framework.model.test.data.SendDataSpecification;
 import net.bpelunit.framework.xml.suite.XMLActivity;
-import net.bpelunit.framework.xml.suite.XMLAnyElement;
 import net.bpelunit.framework.xml.suite.XMLCondition;
 import net.bpelunit.framework.xml.suite.XMLConditionGroup;
 import net.bpelunit.framework.xml.suite.XMLCopy;
@@ -85,6 +84,7 @@ import org.apache.xmlbeans.XmlCursor;
 import org.apache.xmlbeans.XmlException;
 import org.apache.xmlbeans.XmlObject;
 import org.apache.xmlbeans.XmlOptions;
+import org.codehaus.plexus.util.FileUtils;
 import org.w3c.dom.Attr;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Element;
@@ -182,7 +182,7 @@ public class SpecificationLoader {
 
 	private TestSuite parseSuite(String testDirectory,
 			XMLTestSuiteDocument xmlTestSuiteDocument)
-			throws SpecificationException {
+			throws SpecificationException, XmlException, IOException {
 
 		XMLTestSuite xmlTestSuite = xmlTestSuiteDocument.getTestSuite();
 		if (xmlTestSuite == null)
@@ -438,7 +438,7 @@ public class SpecificationLoader {
 
 	private TestCase createTestCase(Map<String, Partner> suitePartners,
 			Partner suiteClient, TestSuite suite, XMLTestCase xmlTestCase,
-			String xmlTestCaseName, int round, String testDirectory) throws SpecificationException {
+			String xmlTestCaseName, int round, String testDirectory) throws SpecificationException, XmlException, IOException {
 
 		TestCase test = new TestCase(suite, xmlTestCaseName);
 
@@ -521,12 +521,14 @@ public class SpecificationLoader {
 	 *            the list of XML activities
 	 * @param round
 	 * @throws SpecificationException
+	 * @throws IOException 
+	 * @throws XmlException 
 	 * @throws ConfigurationException
 	 */
 	private void readActivities(PartnerTrack partnerTrack,
 			XMLTestCase xmlTestCase, XMLTrack xmlTrack, int round,
 			String testDirectory)
-			throws SpecificationException {
+			throws SpecificationException, XmlException, IOException {
 
 		List<XMLActivity> xmlActivities = ActivityUtil.getActivities(xmlTrack);
 
@@ -653,11 +655,13 @@ public class SpecificationLoader {
 	/**
 	 * 
 	 * Creates a synchronous send/receive activity.
+	 * @throws IOException 
+	 * @throws XmlException 
 	 * 
 	 */
 	private Activity createSendReceiveSynchronous(
 			XMLTwoWayActivity xmlSendReceiveSync, PartnerTrack partnerTrack,
-			int round, String testDirectory) throws SpecificationException {
+			int round, String testDirectory) throws SpecificationException, XmlException, IOException {
 
 		SendReceiveSync activity = new SendReceiveSync(partnerTrack);
 
@@ -693,11 +697,13 @@ public class SpecificationLoader {
 
 	/**
 	 * Creates a synchronous receive/send activity.
+	 * @throws IOException 
+	 * @throws XmlException 
 	 * 
 	 */
 	private Activity createReceiveSendSynchronous(
 			XMLTwoWayActivity xmlReceiveSendSync, PartnerTrack partnerTrack,
-			int round, String testDirectory) throws SpecificationException {
+			int round, String testDirectory) throws SpecificationException, XmlException, IOException {
 
 		ReceiveSendSync activity = new ReceiveSendSync(partnerTrack);
 		activity.setAssumption(xmlReceiveSendSync.getAssume());
@@ -742,11 +748,13 @@ public class SpecificationLoader {
 	 *            the XML data
 	 * @param round
 	 * @throws SpecificationException
+	 * @throws IOException 
+	 * @throws XmlException 
 	 * @throws ConfigurationException
 	 */
 	private void fillAsyncTwoWay(TwoWayAsyncActivity twoWayActivity,
 			XMLTwoWayActivity xmlAsyncTwoWay, int round, String testDirectory)
-			throws SpecificationException {
+			throws SpecificationException, XmlException, IOException {
 
 		XMLSendActivity xmlSend = xmlAsyncTwoWay.getSend();
 		XMLReceiveActivity xmlReceive = xmlAsyncTwoWay.getReceive();
@@ -780,12 +788,14 @@ public class SpecificationLoader {
 	/**
 	 * Creates a send specification for an asnychronous send-only. In this case,
 	 * service information must be stored directly on the send activity itself.
+	 * @throws IOException 
+	 * @throws XmlException 
 	 * 
 	 */
 	private SendDataSpecification createSendSpecificationFromStandalone(
 			Activity parentActivity, XMLSendActivity xmlSend,
 			SOAPOperationDirectionIdentifier direction, int round, String testDirectory)
-			throws SpecificationException {
+			throws SpecificationException, XmlException, IOException {
 
 		SOAPOperationCallIdentifier operation = getOperationCallIdentifier(
 				parentActivity, getService(parentActivity, xmlSend),
@@ -797,6 +807,8 @@ public class SpecificationLoader {
 	/**
 	 * Creates a send specficiation for a synchronous send/receive. In this
 	 * case, service information must be stored on the send/receive activity.
+	 * @throws IOException 
+	 * @throws XmlException 
 	 * 
 	 */
 	private SendDataSpecification createSendSpecificationFromParent(
@@ -804,7 +816,7 @@ public class SpecificationLoader {
 			XMLSendActivity xmlSend,
 			SOAPOperationDirectionIdentifier direction, int round,
 			String testDirectory)
-			throws SpecificationException {
+			throws SpecificationException, XmlException, IOException {
 
 		SOAPOperationCallIdentifier operation = getOperationCallIdentifier(
 				parentActivity, getService(parentActivity, xmlSendReceiveSync),
@@ -817,11 +829,13 @@ public class SpecificationLoader {
 	/**
 	 * Creates a send specification for the given activity and operation and
 	 * from the given XML Send Specification.
+	 * @throws IOException 
+	 * @throws XmlException 
 	 * 
 	 */
 	private SendDataSpecification createSendSpecification(Activity activity,
 			SOAPOperationCallIdentifier operation, XMLSendActivity xmlSend,
-			int round, String testDirectory) throws SpecificationException {
+			int round, String testDirectory) throws SpecificationException, XmlException, IOException {
 
 		// Namespaces
 		NamespaceContext context = getNamespaceMap(xmlSend.newCursor());
@@ -847,12 +861,42 @@ public class SpecificationLoader {
 					"Send Element must have exactly one of <data>, <template>, or <xmlFile> ");
 		}
 
+		// Import namespaces in the BPTS file to the root elements of the
+		// <data> or <template> element, and convert the <template> contents
+		// to text.
+		Element rawDataRoot = null;
+		String templateText = null;
+
 		if (xmlSend.isSetXmlFile()) {
-			importXmlFileAndSetAsData(xmlSend, testDirectory);
+			// literal <xmlFile> element
+			final String path = xmlSend.getXmlFile();
+			rawDataRoot = copyAsRootWithNamespaces(XmlObject.Factory.parse(new File(testDirectory, path)));
+		}
+		else if (xmlSend.isSetData()) {
+			if (xmlSend.getData().isSetSrc()) {
+				// src attribute in <data>
+				final String path = xmlSend.getData().getSrc();
+				rawDataRoot = copyAsRootWithNamespaces(XmlObject.Factory.parse(new File(testDirectory, path)));
+			}
+			else {
+				rawDataRoot = copyAsRootWithNamespaces(xmlSend.getData());
+			}
+		}
+		else if (xmlSend.isSetTemplate()) {
+			if (xmlSend.getTemplate().isSetSrc()) {
+				// 'src' attribute in <template> - load as raw text, *not* XML - much less escaping involved
+				// Cannot reuse namespaces in .bpts - user must set namespaces in the .vm (same as when loading an external XML file)
+				final String path = xmlSend.getTemplate().getSrc();
+				templateText = "<" + BPELUnitUtil.DUMMY_ELEMENT_NAME + ">"
+						+ FileUtils.fileRead(new File(testDirectory, path))
+						+ "</" + BPELUnitUtil.DUMMY_ELEMENT_NAME + ">";
+			} else {
+				// Embedded templates are parsed as XML and can reuse existing templates
+				Element templateRoot = copyAsRootWithNamespaces(xmlSend.getTemplate());
+				templateText = XmlObject.Factory.parse(templateRoot).xmlText();
+			}
 		}
 
-		XMLAnyElement xmlData = xmlSend.getData();
-		XMLAnyElement xmlTemplate = xmlSend.getTemplate();
 		for(XMLProperty p : xmlSend.getTransportOptionList()) {
 			spec.putProtocolOption(p.getName(), p.getStringValue());
 		}
@@ -863,25 +907,6 @@ public class SpecificationLoader {
 					"Send Element can only have exactly one of {delay, delaySequence}, and not both");
 		}
 		final String delayExpression = xmlSend.getDelay();
-		// Import namespaces in the BPTS file to the root elements of the
-		// <data> or <template> element, and convert the <template> contents
-		// to text.
-		Element rawDataRoot = null;
-		String templateText = null;
-
-		try {
-			if (xmlData != null)
-				rawDataRoot = copyAsRootWithNamespaces(xmlData);
-			if (xmlTemplate != null) {
-				Element templateRoot = copyAsRootWithNamespaces(xmlTemplate);
-				templateText = XmlObject.Factory.parse(templateRoot).xmlText();
-			}
-		} catch (XmlException e) {
-			throw new SpecificationException(
-					"An error occurred when reading the literal data or "
-							+ "template of send for activity "
-							+ activity.getName() + ": " + e.getMessage(), e);
-		}
 
 		/*
 		 * Get round data
@@ -913,40 +938,30 @@ public class SpecificationLoader {
 		return spec;
 	}
 
-	private void importXmlFileAndSetAsData(XMLSendActivity xmlSend,
-			String testDirectory) throws SpecificationException {
-		File xmlFile = new File(testDirectory, xmlSend.getXmlFile());
-		xmlSend.setData(XMLAnyElement.Factory.newInstance());
-		xmlSend.unsetXmlFile();
+	private Element copyAsRootWithNamespaces(XmlObject xmlData)
+			throws DOMException, SpecificationException
+	{
 		try {
-			xmlSend.getData().set(XmlObject.Factory.parse(xmlFile));
-		} catch (Exception e) {
-			throw new SpecificationException(
-					"Error while loading imported XML File: "
-							+ e.getMessage(), e);
-		}
-	}
-
-	private Element copyAsRootWithNamespaces(XMLAnyElement xmlData)
-			throws XmlException, DOMException {
-		Element rawDataRoot;
-		rawDataRoot = BPELUnitUtil.generateDummyElementNode();
-		// Use the internal namespace mechanism of XMLBeans to
-		// sort out namespaces and add them to the top-level element,
-		// ready to be copied by importNode().
-		XmlObject test = XmlObject.Factory.parse(xmlData.xmlText());
-		NodeList cn = test.getDomNode().getChildNodes();
-		for (int i = 0; i < cn.getLength(); i++) {
-			Node currentItem = cn.item(i);
-			// must be elements. There might be comments flying around,
-			// filter them.
-			if (currentItem instanceof Element) {
-				Element element = (Element) currentItem;
-				rawDataRoot.appendChild(rawDataRoot.getOwnerDocument()
-						.importNode(element, true));
+			Element rawDataRoot;
+			rawDataRoot = BPELUnitUtil.generateDummyElementNode();
+			// Use the internal namespace mechanism of XMLBeans to
+			// sort out namespaces and add them to the top-level element,
+			// ready to be copied by importNode().
+			XmlObject test = XmlObject.Factory.parse(xmlData.xmlText());
+			NodeList cn = test.getDomNode().getChildNodes();
+			for (int i = 0; i < cn.getLength(); i++) {
+				Node currentItem = cn.item(i);
+				// Must be elements or text nodes. There might be comments flying around,
+				// filter them.
+				if (currentItem instanceof Element) {
+					rawDataRoot.appendChild(rawDataRoot.getOwnerDocument().importNode(currentItem, true));
+				}
 			}
+			return rawDataRoot;
+		} catch (XmlException e) {
+			throw new SpecificationException(
+				"An error occurred when reading the literal data or template of send for an activity", e);
 		}
-		return rawDataRoot;
 	}
 
 	/**

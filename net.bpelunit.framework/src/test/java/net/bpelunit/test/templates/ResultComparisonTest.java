@@ -2,7 +2,6 @@ package net.bpelunit.test.templates;
 
 import net.bpelunit.test.util.TestUtil;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -24,4 +23,5 @@ public class ResultComparisonTest extends AbstractTemplateTest {
 		TestUtil.assertDifferentResults("BPTS files which are semantically different are reported as such",
 				TC_3R_NOTEMP, TC_4R_NOTEMP);
 	}
+
 }
