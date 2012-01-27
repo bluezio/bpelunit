@@ -346,11 +346,18 @@ The referenced XML file must not contain SOAP message elements.</xs:documentatio
 	</xs:complexType>
 	<xs:complexType name="AnyElement" mixed="true">
 		<xs:annotation>
-			<xs:documentation>Wrapper for the XML Any Element</xs:documentation>
+			<xs:documentation>
+				Wrapper for the XML Any Element
+			</xs:documentation>
 		</xs:annotation>
 		<xs:sequence>
-			<xs:any namespace="##any" processContents="skip" maxOccurs="unbounded"/>
+			<xs:any namespace="##any" processContents="skip"
+				maxOccurs="unbounded" minOccurs="0"/>
 		</xs:sequence>
+		<xs:attribute name="src" type="xs:string">
+			<xs:annotation>
+				<xs:documentation>Source file from which the contents of this element should be loaded. The loaded contents of the file replace the actual text content of the main element.</xs:documentation>
+			</xs:annotation></xs:attribute>
 	</xs:complexType>
 	<xs:complexType name="Activity">
 		<xs:annotation>
