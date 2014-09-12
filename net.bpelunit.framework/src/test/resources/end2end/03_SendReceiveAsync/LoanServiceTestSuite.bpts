@@ -12,7 +12,6 @@
         <testCase name="Some simple test" vary="true">
             <clientTrack>
                 <sendReceiveAsynchronous>
-                    <headerProcessor name="wsa"/>
                     <send service="loan:LoanService" port="LoanServicePort" operation="initiate">
                         <data>
                             <loan:loanApplication>
@@ -32,11 +31,11 @@
                             <value>'true'</value>
                         </condition>
                     </receive>
+                    <headerProcessor name="wsa"/>
                 </sendReceiveAsynchronous>
             </clientTrack>
             <partnerTrack name="LoanService">
                 <receiveSendAsynchronous>
-                    <headerProcessor name="wsa"/>
                     <receive service="loan:LoanService" port="LoanServicePort" operation="initiate">
                         <!--Assure the data got transferred correctly...-->
                         <condition>
@@ -54,6 +53,7 @@
                             </loan:loanOffer>
                         </data>
                     </send>
+                    <headerProcessor name="wsa"/>
                 </receiveSendAsynchronous>
             </partnerTrack>
         </testCase>

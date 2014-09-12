@@ -27,9 +27,6 @@
             </clientTrack>
             <partnerTrack name="CreditRatingService">
                 <receiveSend port="CreditRatingServicePort" operation="process" service="crs:CreditRatingService">
-                    <mapping>
-                        <copy from="crs:ssn" to="crs:rating/@ssn"/>
-                    </mapping>
                     <receive>
                         <!--Assure the SSN got transferred correctly...-->
                         <condition>
@@ -42,6 +39,9 @@
                             <crs:rating ssn="">495</crs:rating>
                         </data>
                     </send>
+                    <mapping>
+                        <copy from="crs:ssn" to="crs:rating/@ssn"/>
+                    </mapping>
                 </receiveSend>
             </partnerTrack>
         </testCase>
